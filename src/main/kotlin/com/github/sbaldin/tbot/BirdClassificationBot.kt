@@ -2,23 +2,33 @@ package com.github.sbaldin.tbot
 
 import com.elbekD.bot.Bot
 import com.elbekD.bot.feature.chain.chain
-import com.elbekD.bot.feature.chain.jumpTo
 import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.KeyboardButton
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.PhotoSize
 import com.elbekD.bot.types.ReplyKeyboardMarkup
+import com.github.sbaldin.tbot.domain.BirdNameEnum
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
-import org.telegram.telegrambots.meta.api.methods.GetFile
 import java.io.File
 import java.net.URL
+import java.text.MessageFormat
+import java.util.ResourceBundle
+
+import java.util.Locale
+
 
 class BirdClassificationBot(
     private val botName: String,
     private val token: String,
-    private val birdClassifier: BirdClassifier
+    private val birdClassifier: BirdClassifier,
+    private val locale: Locale = Locale("ru", "Ru")
+
 ) {
+
+    val birdNamesRes = ResourceBundle.getBundle("bird_name", locale)
+    val botDialogRes = ResourceBundle.getBundle("bot_dialog", locale)
+
 
     fun start() {
         val bot = Bot.createPolling(botName, token) {
@@ -31,6 +41,7 @@ class BirdClassificationBot(
         buildChains(bot)
         bot.start()
     }
+
     private fun addLogFilter(bot: Bot) {
         bot.onMessage { msg ->
             log.info("msg:$msg")
@@ -51,29 +62,43 @@ class BirdClassificationBot(
 
     private fun findBirdChain(bot: Bot) {
         bot.chain(trigger = "/findBird") { msg ->
-            bot.sendMessage(msg.chat.id, "Окей, я попробую отгадать имя птицы, пришли мне фото...")
+            bot.sendMessage(msg.chat.id, botDialogRes.getString("find_bird_dialog_start_message"))
         }.then(label = "photo_recognize_step") { msg ->
             if (msg.new_chat_photo == null && msg.photo == null) {
-                bot.sendMessage(msg.chat.id, "Я не нашла фото в последнем сообщении, процедура поиска птиц прекращена!")
+                bot.sendMessage(msg.chat.id, botDialogRes.getString("find_bird_dialog_abort_message"))
                 bot.terminateChain(msg.chat.id)
                 return@then
             }
-            bot.sendMessage(msg.chat.id, "Запускаю поиск птиц...")
+            bot.sendMessage(msg.chat.id, botDialogRes.getString("find_bird_dialog_in_progress_message"))
+
             val photos = msg.new_chat_photo.orEmpty() + msg.photo.orEmpty()
             val localFile = photos.run { getBiggestPhotoAndSaveLocally(bot) }
             val bestBird = birdClassifier.getBirdClassDistribution(localFile).birdById.values.maxByOrNull { it.rate }!!
+
+            val hypothesis_msg = botDialogRes.getString("find_bird_dialog_hypothesis_message")
+            val birdName = birdNamesRes.getString(BirdNameEnum.fromId(bestBird.id).name)
+
             bot.sendMessage(
                 msg.chat.id,
-                "Это ${bestBird.title} с вероятностю ${bestBird.rate.toPercentage()}...\nЯ права?",
+                MessageFormat.format(
+                    hypothesis_msg,
+                    birdName,
+                    bestBird.rate.toPercentage()
+                ),
                 markup = ReplyKeyboardMarkup(
                     resize_keyboard = true,
                     one_time_keyboard = true,
-                    keyboard = listOf(listOf(KeyboardButton("Да, ты молодец!"), KeyboardButton("Хм, ну не знаю...")))
+                    keyboard = listOf(
+                        listOf(
+                            KeyboardButton(botDialogRes.getString("find_bird_dialog_success_message")),
+                            KeyboardButton(botDialogRes.getString("find_bird_dialog_fail_message"))
+                        )
+                    )
                 )
             )
 
         }.then(isTerminal = true) { msg ->
-            bot.sendMessage(msg.chat.id, "Ну вот и ладушки!")
+            bot.sendMessage(msg.chat.id, botDialogRes.getString("find_bird_dialog_finish_message"))
             bot.terminateChain(msg.chat.id)
 
         }.build()
@@ -96,8 +121,9 @@ class BirdClassificationBot(
     }
 
     private fun createGreetingMsg(msg: Message): String {
-        val greetings = msg.from?.let { "Привет, ${it.first_name}!" } ?: "Привет!"
-        return "$greetings Меня зовут Кибер-Аня, и я отгадываю птиц!\nПошли мне фото или ссылку на птицу, а я назову тебе ее имя!"
+        val greetings = botDialogRes.getString("greetings_dialog_hi_message")
+        val greetingsWithName = msg.from?.let { "$greetings, ${it.first_name}!" } ?: "$greetings!"
+        return "$greetingsWithName ${botDialogRes.getString("greetings_dialog_about_message")}"
     }
 
     companion object {
