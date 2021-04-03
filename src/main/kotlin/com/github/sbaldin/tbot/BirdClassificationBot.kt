@@ -22,12 +22,11 @@ class BirdClassificationBot(
     private val botName: String,
     private val token: String,
     private val birdClassifier: BirdClassifier,
-    private val locale: Locale = Locale("ru", "Ru")
-
+    locale: Locale = Locale("ru", "Ru")
 ) {
 
     val birdNamesRes = ResourceBundle.getBundle("bird_name", locale)
-    val botDialogRes = ResourceBundle.getBundle("bot_dialog", locale)
+    val botDialogRes = ResourceBundle.getBundle("bot_dialogs", locale)
 
 
     fun start() {
@@ -54,8 +53,30 @@ class BirdClassificationBot(
     }
 
     private fun greetingsChain(bot: Bot) {
+        val showHelpKeyboard = botDialogRes.getString("greetings_dialog_show_gif_keyboard")
+        val finishDialogKeyboard = botDialogRes.getString("greetings_dialog_finish_keyboard")
         bot.chain("/start") { msg ->
-            bot.sendMessage(msg.chat.id, createGreetingMsg(msg))
+            bot.sendMessage(
+                msg.chat.id,
+                createGreetingMsg(msg),
+                markup = ReplyKeyboardMarkup(
+                    resize_keyboard = true,
+                    one_time_keyboard = true,
+                    keyboard = listOf(
+                        listOf(
+                            KeyboardButton(showHelpKeyboard + "\uD83D\uDC66\uD83C\uDFFF"),
+                            KeyboardButton(finishDialogKeyboard)
+                        )
+                    )
+                )
+            )
+
+        }.then { msg ->
+            when(msg.text){
+                showHelpKeyboard -> bot.sendMessage(msg.chat.id,"Gif will be here")
+                finishDialogKeyboard -> bot.sendMessage(msg.chat.id, "Answer something")
+            }
+            log.info(msg.text)
             bot.terminateChain(msg.chat.id)
         }.build()
     }
@@ -117,7 +138,7 @@ class BirdClassificationBot(
             "jpg"
         )
         FileUtils.copyInputStreamToFile(stream, localFile)
-        return localFile;
+        return localFile
     }
 
     private fun createGreetingMsg(msg: Message): String {
