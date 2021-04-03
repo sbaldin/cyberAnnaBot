@@ -1,3 +1,10 @@
 bot:
   name: cyber_anny_bot
   token: "1502772050:AAHbwt9my-CCrRQa8fLENgvGE3S6vgvMYzw"
+
+cnn:
+  model: "model_russian_6x6_kernel_73.bin"
+  inputImageSize:
+    width: 224
+    height: 244
+    channels: 3

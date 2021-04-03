@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 buildscript {
 
     ext {
@@ -9,8 +11,6 @@ buildscript {
         mockkversion = '1.9'
         junitVersion = '1.0.2'
         tbotVersion = '5.0.1.1'
-        userHomePath = System.properties["user.home"]
-        destinationPath = userHomePath + "/.${rootProject.name}"
     }
 
     repositories {
@@ -20,7 +20,6 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0'
     }
 }
@@ -28,7 +27,7 @@ buildscript {
 plugins {
     id "org.jetbrains.kotlin.jvm" version '1.4.31'
     id "application"
-    id "com.github.johnrengelman.shadow" version "5.0.0"
+    id "com.github.johnrengelman.shadow" version "6.1.0"
     id "org.jmailen.kotlinter" version "2.3.2"
     id "org.jlleitschuh.gradle.ktlint-idea" version "9.2.1"
 }
@@ -41,6 +40,7 @@ defaultTasks 'run'
 
 repositories {
     mavenCentral()
+    maven { url "https://jitpack.io" }
 }
 
 kotlinter {
@@ -87,13 +87,26 @@ dependencies {
 
     testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.0.2'
+
+    // https://mvnrepository.com/artifact/org.asynchttpclient/async-http-client
+    implementation group: 'org.asynchttpclient', name: 'async-http-client', version: '2.12.2'
+    // https://mvnrepository.com/artifact/org.jsoup/jsoup
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
+    // https://mvnrepository.com/artifact/net.sourceforge.htmlunit/htmlunit
+    implementation group: 'net.sourceforge.htmlunit', name: 'htmlunit', version: '2.47.1'
+
+    // comment/remove the line above and uncomment the line below
+    implementation "com.github.elbekD:kt-telegram-bot:1.3.8"
+
+    implementation "org.deeplearning4j:deeplearning4j-core:1.0.0-beta7"
+    implementation "org.nd4j:nd4j-native-platform:1.0.0-beta7"
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "14"
+    kotlinOptions.jvmTarget = "1.8"
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "14"
+    kotlinOptions.jvmTarget = "1.8"
 }
 test{
     useJUnitPlatform {
@@ -101,24 +114,16 @@ test{
     }
 }
 
-//build.dependsOn shadowJar
-/*jar {
-    zip64 true
-    manifest {
-        attributes "Implementation-Title": "Invoice Generator"
-        attributes "Implementation-Version": getArchiveVersion()
-        attributes "Main-Class": mainClassName
-    }
-    // This line of code recursively collects and copies all of a project's files
-    // and adds them to the JAR itself. One can extend this task, to skip certain
-    // files or particular types at will
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-}*/
-
 application {
     applicationDefaultJvmArgs = ['-Xmx500m']
 }
 
 tasks.withType(JavaExec) {
     systemProperties System.properties
+}
+
+tasks.withType(ShadowJar){
+    manifest {
+        attributes["Main-Class"] = "com.github.sbaldin.tbot.Application"
+    }
 }

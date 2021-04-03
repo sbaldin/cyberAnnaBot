@@ -1,34 +1,43 @@
 package com.github.sbaldin.tbot
 
 import com.github.sbaldin.tbot.domain.BotConf
+import com.github.sbaldin.tbot.domain.CnnConf
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import com.uchuhimo.konf.toValue
+import org.apache.log4j.BasicConfigurator
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
+import org.apache.log4j.PropertyConfigurator
+
+import java.util.Properties
+
 
 fun readBotConf(
     resourcePath: String = "application-bot.yaml"
 ) = Config()
     .from.yaml.resource(resourcePath).at("bot").toValue<BotConf>()
 
+
+fun readCnnConf(
+    resourcePath: String = "application-bot.yaml"
+) = Config()
+    .from.yaml.resource(resourcePath).at("cnn").toValue<CnnConf>()
+
 object Application {
-    val log = LoggerFactory.getLogger(Application::class.java)
-    val RECONNECT_PAUSE = 10_000L
 
     @JvmStatic
     fun main(args: Array<String>) {
+        val props = Properties()
+        props.load(Application::class.java.classLoader.getResourceAsStream("log4j.properties"))
+        PropertyConfigurator.configure(props)
         log.info("Starting Telegram Cyber Anny Bot.")
         val appConf: BotConf = readBotConf()
 
-        //System.getProperties()["proxySet"] = "true";
-        // System.getProperties()["socksProxyHost"] = "ip";
-        // System.getProperties()["socksProxyPort"] = "port";
-
-        botConnect(appConf)
-        log.info("The bot has been shut down.")
+        BirdClassificationBot(appConf.name,appConf.token, BirdClassifier(readCnnConf())).start()
+        log.info("The bot connected to telegram api.")
     }
 
     private fun botConnect(appConf: BotConf) {
@@ -48,3 +57,6 @@ object Application {
         }
     }
 }
+
+val log = LoggerFactory.getLogger(Application::class.java)
+val RECONNECT_PAUSE = 10_000L
