@@ -1,4 +1,4 @@
-package com.github.sbaldin.tbot.domain.enum
+package com.github.sbaldin.tbot.data.enum
 
 enum class BirdNameEnum(val id: Int, internal val title: String) {
     /**
@@ -12,6 +12,7 @@ enum class BirdNameEnum(val id: Int, internal val title: String) {
     BIRD_3(id = 3, "13.Pine_Grosbeak"),
     BIRD_4(id = 4, "2.Bohemian Waxwing"),
     BIRD_5(id = 5, "3.Chestnut_sided_Warbler"),
+
     /**
      *  TODO replace with Eurasian Clark Nutcracker
      */
@@ -22,6 +23,7 @@ enum class BirdNameEnum(val id: Int, internal val title: String) {
     BIRD_10(id = 10, "AFRICAN CROWNED CRANE"),
     BIRD_11(id = 11, "ALBATROSS"),
     BIRD_12(id = 12, "AMERICAN PIPIT"),
+
     /**
      * American specific
      */
@@ -47,7 +49,6 @@ enum class BirdNameEnum(val id: Int, internal val title: String) {
      * Probably should be replaced or removed(american specific)
      */
     BIRD_26(id = 26, "GILA WOODPECKER"),
-
     BIRD_27(id = 27, "GOLDEN EAGLE"),
     BIRD_28(id = 28, "GRAY PARTRIDGE"),
     BIRD_29(id = 29, "GUINEAFOWL"),
@@ -59,6 +60,7 @@ enum class BirdNameEnum(val id: Int, internal val title: String) {
     BIRD_35(id = 35, "LARK BUNTING"),
     BIRD_36(id = 36, "LONG-EARED OWL"),
     BIRD_37(id = 37, "MALLARD DUCK"),
+
     /**
      * Probably should be replaced or removed(american specific)
      */
@@ -67,10 +69,12 @@ enum class BirdNameEnum(val id: Int, internal val title: String) {
     BIRD_40(id = 40, "PARUS MAJOR"),
     BIRD_41(id = 41, "PELICAN"),
     BIRD_42(id = 42, "PEREGRINE FALCON"),
+
     /**
      * Probably should be replaced or removed(american specific)
      */
     BIRD_43(id = 43, "PHILIPPINE EAGLE"),
+
     /**
      * Probably should be replaced or removed(american specific)
      */
@@ -90,21 +94,21 @@ enum class BirdNameEnum(val id: Int, internal val title: String) {
     BIRD_57(id = 57, "VARIED THRUSH"),
     BIRD_58(id = 58, "VULTURINE GUINEAFOWL");
 
-  companion object{
-      private val idMap: Map<Int, BirdNameEnum>
+    companion object {
+        private val idMap: Map<Int, BirdNameEnum>
 
-      init {
-          val map = LinkedHashMap<Int, BirdNameEnum>(values().size)
-          values().forEach { e ->
-              if (map.put(e.id, e) != null) {
-                  throw IllegalArgumentException("$e have duplicate ids: ${e.id}")
-              }
-          }
-          idMap = map
-      }
+        init {
+            val map = LinkedHashMap<Int, BirdNameEnum>(values().size)
+            values().forEach { e ->
+                if (map.put(e.id, e) != null) {
+                    throw IllegalArgumentException("$e have duplicate ids: ${e.id}")
+                }
+            }
+            idMap = map
+        }
 
-      fun fromId(id: Int): BirdNameEnum {
-          return idMap[id] ?: throw IllegalArgumentException("BirdNameEnum does not have id $id")
-      }
-  }
+        fun fromId(id: Int): BirdNameEnum {
+            return idMap[id] ?: throw IllegalArgumentException("BirdNameEnum does not have id $id")
+        }
+    }
 }

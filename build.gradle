@@ -35,7 +35,7 @@ plugins {
 group 'com.github.sbaldin'
 version '0.3'
 
-mainClassName = "com.github.sbaldin.tbot.Application"
+mainClassName = "com.github.sbaldin.tbot.ApplicationKt"
 defaultTasks 'run'
 
 repositories {
@@ -48,7 +48,7 @@ kotlinter {
     indentSize = 4
     reporters = ['checkstyle', 'plain']
     experimentalRules = true
-    disabledRules = ['import-ordering', 'final-newline']
+    disabledRules = ['import-ordering', 'experimental:argument-list-wrapping', 'final-newline']
 }
 
 dependencies {

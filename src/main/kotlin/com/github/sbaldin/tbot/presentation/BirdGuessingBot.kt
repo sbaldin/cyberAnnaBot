@@ -1,10 +1,8 @@
-package com.github.sbaldin.tbot.domain
+package com.github.sbaldin.tbot.presentation
 
 import com.elbekD.bot.Bot
-import com.github.sbaldin.tbot.presentation.DialogChain
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 
 class BirdGuessingBot(
     private val botName: String,
@@ -12,8 +10,8 @@ class BirdGuessingBot(
     private val dialogs: List<DialogChain>
 ) {
 
-    fun init() {
-        log.info("Bot Initialize .")
+    fun start() {
+        log.info("Bot Initialize.")
         val bot = Bot.createPolling(botName, token) {
             limit = 50
             timeout = 30
@@ -22,8 +20,9 @@ class BirdGuessingBot(
         }
         addLogFilter(bot)
         buildChains(bot)
-        bot.start()
         log.info("Bot Initialization finished.")
+        bot.start()
+        log.info("Bot has been started.")
     }
 
     private fun addLogFilter(bot: Bot) {
@@ -39,10 +38,7 @@ class BirdGuessingBot(
         }
     }
 
-
     companion object {
         val log: Logger = LoggerFactory.getLogger(BirdGuessingBot::class.java)
     }
 }
-
-

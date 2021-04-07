@@ -8,8 +8,8 @@ import com.elbekD.bot.types.KeyboardButton
 import com.elbekD.bot.types.PhotoSize
 import com.elbekD.bot.types.ReplyKeyboardMarkup
 import com.github.sbaldin.tbot.domain.BirdClassifier
+import com.github.sbaldin.tbot.data.enum.BirdNameEnum
 import com.github.sbaldin.tbot.domain.classifier.toPercentage
-import com.github.sbaldin.tbot.domain.enum.BirdNameEnum
 import org.apache.commons.io.FileUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -25,7 +25,7 @@ class GuessBirdChainPresenter(
     locale: Locale
 ) : DialogChain {
 
-    val birdNamesRes = ResourceBundle.getBundle("bird_name", locale)
+    val birdNamesRes: ResourceBundle = ResourceBundle.getBundle("bird_name", locale)
 
     private val startDialogMsg: String
     private val abortDialogMsg: String
@@ -48,7 +48,6 @@ class GuessBirdChainPresenter(
             guessingFailKeyboard = getString("find_bird_dialog_fail_message")
         }
     }
-
 
     override fun chain(bot: Bot): ChainBuilder = bot.chain(trigger = "/guessBird") { msg ->
         bot.sendMessage(msg.chat.id, startDialogMsg)
@@ -84,17 +83,14 @@ class GuessBirdChainPresenter(
                 )
             )
         )
-
     }.then(isTerminal = true) { msg ->
         bot.sendMessage(msg.chat.id, finishDialogMsg)
         bot.terminateChain(msg.chat.id)
     }
 
-
     private fun List<PhotoSize>.getBiggestPhotoAndSaveLocally(bot: Bot): File {
         val biggestPhoto = maxByOrNull { it.file_size }!!
         val fileId = biggestPhoto.file_id
-
         log.info("Step:photo_recognize_step:File id is $fileId")
 
         val fileUrl = "https://api.telegram.org/file/bot$token/${bot.getFile(fileId).get().file_path}"

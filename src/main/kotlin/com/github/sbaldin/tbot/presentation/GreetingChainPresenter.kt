@@ -9,7 +9,8 @@ import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.ReplyKeyboardMarkup
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
+import java.util.Locale
+import java.util.ResourceBundle
 
 class GreetingChainPresenter(locale: Locale) : DialogChain {
 
@@ -31,7 +32,6 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
         }
     }
 
-
     override fun chain(bot: Bot): ChainBuilder = bot.chain("/start") { msg ->
         bot.sendMessage(
             msg.chat.id,
@@ -47,7 +47,6 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
                 )
             )
         )
-
     }.then { msg ->
         when (msg.text) {
             showHelpKeyboard -> bot.sendMessage(msg.chat.id, "Gif will be here")
@@ -55,7 +54,6 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
         }
         bot.terminateChain(msg.chat.id)
     }
-
 
     private fun createGreetingMsg(msg: Message): String {
         val greetingWithName = msg.from?.let { "$greetingWordMsg, ${it.first_name}!" } ?: "$greetingWordMsg!"
