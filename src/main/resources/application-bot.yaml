@@ -1,10 +1,11 @@
 bot:
   name: cyber_anny_bot
-  token: "1502772050:AAHbwt9my-CCrRQa8fLENgvGE3S6vgvMYzw"
+  locale: RU
+  token: no cheese for u bro
 
 cnn:
-  model: "model_russian_6x6_kernel_73.bin"
-  inputImageSize:
+  modelFileName: "model_russian_6x6_kernnel_darknet_93.bin"
+  cnnInputLayerSize:
     width: 224
     height: 244
     channels: 3

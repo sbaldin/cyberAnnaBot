@@ -1,30 +1,31 @@
 package com.github.sbaldin.tbot
 
+import com.github.sbaldin.tbot.domain.BirdClassifier
 import com.github.sbaldin.tbot.domain.BotConf
 import com.github.sbaldin.tbot.domain.CnnConf
+import com.github.sbaldin.tbot.presentation.GreetingChainPresenter
+import com.github.sbaldin.tbot.presentation.GuessBirdChainPresenter
+import com.github.sbaldin.tbot.domain.BirdGuessingBot
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import com.uchuhimo.konf.toValue
-import org.apache.log4j.BasicConfigurator
 import org.slf4j.LoggerFactory
-import org.telegram.telegrambots.meta.TelegramBotsApi
-import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 import org.apache.log4j.PropertyConfigurator
+import org.slf4j.Logger
 
 import java.util.Properties
 
-
 fun readBotConf(
-    resourcePath: String = "application-bot.yaml"
+    resourcePath: String = "application-bot.yaml",
+    botConfPath: String = ""
 ) = Config()
-    .from.yaml.resource(resourcePath).at("bot").toValue<BotConf>()
-
+    .from.yaml.resource(resourcePath).from.yaml.file(botConfPath, optional = true).at("bot").toValue<BotConf>()
 
 fun readCnnConf(
-    resourcePath: String = "application-bot.yaml"
+    resourcePath: String = "application-bot.yaml",
+    cnnConfPath: String = ""
 ) = Config()
-    .from.yaml.resource(resourcePath).at("cnn").toValue<CnnConf>()
+    .from.yaml.resource(resourcePath).from.yaml.file(cnnConfPath, optional = true).at("cnn").toValue<CnnConf>()
 
 object Application {
 
@@ -34,29 +35,27 @@ object Application {
         props.load(Application::class.java.classLoader.getResourceAsStream("log4j.properties"))
         PropertyConfigurator.configure(props)
         log.info("Starting Telegram Cyber Anny Bot.")
-        val appConf: BotConf = readBotConf()
 
-        BirdClassificationBot(appConf.name,appConf.token, BirdClassifier(readCnnConf())).start()
+        val appConfPath: String = System.getProperty("appConfig") ?: "./application-bot.yaml"
+        log.info("Application config path:$appConfPath")
+        val appConf: BotConf = readBotConf(botConfPath = appConfPath)
+
+        val locale = appConf.locale()
+        BirdGuessingBot(
+            appConf.name,
+            appConf.token,
+            listOf(
+                GreetingChainPresenter(locale),
+                GuessBirdChainPresenter(
+                    BirdClassifier(readCnnConf(cnnConfPath = appConfPath)),
+                    appConf.token,
+                    locale
+                )
+            )
+        ).init()
         log.info("The bot connected to telegram api.")
-    }
-
-    private fun botConnect(appConf: BotConf) {
-        try {
-            val botsApi = TelegramBotsApi(DefaultBotSession::class.java)
-            botsApi.registerBot(CyberAnnyBot(appConf.name, appConf.token))
-            log.info("TelegramAPI started. Look for messages")
-        } catch (e: TelegramApiRequestException) {
-            log.error("Cant Connect. Pause " + (RECONNECT_PAUSE / 1000).toString() + "sec and try again. Error: " + e.message)
-            log.error("Error", e)
-            try {
-                Thread.sleep(RECONNECT_PAUSE)
-            } catch (e1: InterruptedException) {
-                e1.printStackTrace()
-            }
-            botConnect(appConf)
-        }
     }
 }
 
-val log = LoggerFactory.getLogger(Application::class.java)
-val RECONNECT_PAUSE = 10_000L
+val log: Logger = LoggerFactory.getLogger(Application::class.java)
+const val RECONNECT_PAUSE = 10_000L
