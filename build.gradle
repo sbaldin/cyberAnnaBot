@@ -28,12 +28,12 @@ plugins {
     id "org.jetbrains.kotlin.jvm" version '1.4.31'
     id "application"
     id "com.github.johnrengelman.shadow" version "6.1.0"
-    id "org.jmailen.kotlinter" version "2.3.2"
+    id("org.jmailen.kotlinter") version "3.4.0"
     id "org.jlleitschuh.gradle.ktlint-idea" version "9.2.1"
 }
 
 group 'com.github.sbaldin'
-version '0.1'
+version '0.3'
 
 mainClassName = "com.github.sbaldin.tbot.Application"
 defaultTasks 'run'
@@ -49,7 +49,6 @@ kotlinter {
     reporters = ['checkstyle', 'plain']
     experimentalRules = true
     disabledRules = ['import-ordering', 'final-newline']
-    fileBatchSize = 30
 }
 
 dependencies {
@@ -103,10 +102,10 @@ dependencies {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "14"
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "14"
 }
 test{
     useJUnitPlatform {
@@ -126,4 +125,10 @@ tasks.withType(ShadowJar){
     manifest {
         attributes["Main-Class"] = "com.github.sbaldin.tbot.Application"
     }
+    //Stuff to run shadow jar with dl4j
+    //dl4j pulls too many dependencies, ypu need zip64 to be able to put it all to one jar
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer) {
+        resource = 'reference.conf'
+    }
+    zip64 = true
 }
