@@ -1,11 +1,13 @@
 package com.github.sbaldin.tbot
 
 import com.github.sbaldin.tbot.domain.BirdClassifier
-import com.github.sbaldin.tbot.domain.BotConf
-import com.github.sbaldin.tbot.domain.CnnConf
+import com.github.sbaldin.tbot.data.BotConf
+import com.github.sbaldin.tbot.data.CnnConf
+import com.github.sbaldin.tbot.domain.BiggestPhotoInteractor
+import com.github.sbaldin.tbot.domain.BirdClassifierInteractor
 import com.github.sbaldin.tbot.presentation.GreetingChainPresenter
 import com.github.sbaldin.tbot.presentation.GuessBirdChainPresenter
-import com.github.sbaldin.tbot.domain.BirdGuessingBot
+import com.github.sbaldin.tbot.presentation.BirdGuessingBot
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import com.uchuhimo.konf.toValue
@@ -14,6 +16,8 @@ import org.apache.log4j.PropertyConfigurator
 import org.slf4j.Logger
 
 import java.util.Properties
+
+val log: Logger = LoggerFactory.getLogger(Application::class.java)
 
 fun readBotConf(
     resourcePath: String = "application-bot.yaml",
@@ -28,34 +32,43 @@ fun readCnnConf(
     .from.yaml.resource(resourcePath).from.yaml.file(cnnConfPath, optional = true).at("cnn").toValue<CnnConf>()
 
 object Application {
+    private val appConfPath: String = System.getProperty("appConfig") ?: "./application-bot.yaml"
+    private val appConf: BotConf = readBotConf(botConfPath = appConfPath)
+    private val cnnConf: CnnConf = readCnnConf(cnnConfPath = appConfPath)
 
-    @JvmStatic
-    fun main(args: Array<String>) {
+    fun configureLogger() {
         val props = Properties()
         props.load(Application::class.java.classLoader.getResourceAsStream("log4j.properties"))
         PropertyConfigurator.configure(props)
-        log.info("Starting Telegram Cyber Anny Bot.")
+    }
 
-        val appConfPath: String = System.getProperty("appConfig") ?: "./application-bot.yaml"
+    fun run() {
         log.info("Application config path:$appConfPath")
-        val appConf: BotConf = readBotConf(botConfPath = appConfPath)
-
         val locale = appConf.locale()
+        log.info("Application locale path:$locale")
+
+        val classifier = BirdClassifier(cnnConf)
+        val dialogs = listOf(
+            GreetingChainPresenter(locale),
+            GuessBirdChainPresenter(
+                locale = locale,
+                token = appConf.token,
+                photoInteractor = BiggestPhotoInteractor(),
+                birdClassifierInteractor = BirdClassifierInteractor(classifier)
+            )
+        )
+
         BirdGuessingBot(
             appConf.name,
             appConf.token,
-            listOf(
-                GreetingChainPresenter(locale),
-                GuessBirdChainPresenter(
-                    BirdClassifier(readCnnConf(cnnConfPath = appConfPath)),
-                    appConf.token,
-                    locale
-                )
-            )
-        ).init()
-        log.info("The bot connected to telegram api.")
+            dialogs
+        ).start()
     }
 }
 
-val log: Logger = LoggerFactory.getLogger(Application::class.java)
-const val RECONNECT_PAUSE = 10_000L
+fun main() {
+    Application.configureLogger()
+    log.info("Starting Telegram Cyber Anny Bot.")
+    Application.run()
+    log.info("The bot connected to telegram api.")
+}

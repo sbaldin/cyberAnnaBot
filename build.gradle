@@ -15,7 +15,6 @@ buildscript {
 
     repositories {
         mavenCentral()
-        maven { url "https://plugins.gradle.org/m2/" }
     }
 
     dependencies {
@@ -33,9 +32,9 @@ plugins {
 }
 
 group 'com.github.sbaldin'
-version '0.3'
+version '0.4'
 
-mainClassName = "com.github.sbaldin.tbot.Application"
+mainClassName = "com.github.sbaldin.tbot.ApplicationKt"
 defaultTasks 'run'
 
 repositories {
@@ -48,7 +47,7 @@ kotlinter {
     indentSize = 4
     reporters = ['checkstyle', 'plain']
     experimentalRules = true
-    disabledRules = ['import-ordering', 'final-newline']
+    disabledRules = ['import-ordering', 'experimental:argument-list-wrapping', 'final-newline']
 }
 
 dependencies {
@@ -97,6 +96,8 @@ dependencies {
     // comment/remove the line above and uncomment the line below
     implementation "com.github.elbekD:kt-telegram-bot:1.3.8"
 
+    implementation 'com.vdurmont:emoji-java:5.1.1'
+
     implementation "org.deeplearning4j:deeplearning4j-core:1.0.0-beta7"
     implementation "org.nd4j:nd4j-native-platform:1.0.0-beta7"
 }
@@ -107,7 +108,7 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = "14"
 }
-test{
+test {
     useJUnitPlatform {
         includeEngines 'spek'
     }
@@ -121,7 +122,7 @@ tasks.withType(JavaExec) {
     systemProperties System.properties
 }
 
-tasks.withType(ShadowJar){
+tasks.withType(ShadowJar) {
     manifest {
         attributes["Main-Class"] = "com.github.sbaldin.tbot.Application"
     }

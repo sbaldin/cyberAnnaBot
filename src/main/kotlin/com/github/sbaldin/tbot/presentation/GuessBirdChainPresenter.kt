@@ -5,72 +5,78 @@ import com.elbekD.bot.feature.chain.ChainBuilder
 import com.elbekD.bot.feature.chain.chain
 import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.KeyboardButton
+import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.PhotoSize
 import com.elbekD.bot.types.ReplyKeyboardMarkup
-import com.github.sbaldin.tbot.domain.BirdClassifier
-import com.github.sbaldin.tbot.domain.classifier.toPercentage
-import com.github.sbaldin.tbot.domain.enum.BirdNameEnum
-import org.apache.commons.io.FileUtils
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import java.io.File
-import java.net.URL
+import com.github.sbaldin.tbot.data.BirdClassDistributionModel
+import com.github.sbaldin.tbot.data.BirdClassModel
+import com.github.sbaldin.tbot.data.PhotoSizeModel
+import com.github.sbaldin.tbot.data.enum.BirdNameEnum
+import com.github.sbaldin.tbot.domain.BiggestPhotoInteractor
+import com.github.sbaldin.tbot.domain.BirdClassifierInteractor
+import com.github.sbaldin.tbot.getStringWithEmoji
+import com.github.sbaldin.tbot.toEmoji
+import com.github.sbaldin.tbot.toPercentage
 import java.text.MessageFormat
 import java.util.Locale
 import java.util.ResourceBundle
+import java.util.concurrent.ConcurrentHashMap
 
 class GuessBirdChainPresenter(
-    private val birdClassifier: BirdClassifier,
+    locale: Locale,
     private val token: String,
-    locale: Locale
+    private val photoInteractor: BiggestPhotoInteractor,
+    private val birdClassifierInteractor: BirdClassifierInteractor
 ) : DialogChain {
 
-    val birdNamesRes = ResourceBundle.getBundle("bird_name", locale)
+    // TODO: I am not sure that kt-telegram-bot-1.3.8.jar provides thread-safe api when you work with chains, investigate how to do it right
+    private val birdClassDistributionByChatId = ConcurrentHashMap<Long, BirdClassDistributionModel>()
+    private val birdNamesRes: ResourceBundle = ResourceBundle.getBundle("bird_name", locale)
 
     private val startDialogMsg: String
     private val abortDialogMsg: String
     private val guessingInProgressMsg: String
     private val hypothesisMsg: String
-    private val finishDialogMsg: String
+    private val hypothesisShortMsg: String
+    private val finishSuccessDialogMsg: String
+    private val finishFailDialogMsg: String
 
     private val guessingSuccessKeyboard: String
     private val guessingFailKeyboard: String
 
     init {
         ResourceBundle.getBundle("bot_dialogs", locale).apply {
-            startDialogMsg = getString("find_bird_dialog_start_message")
-            abortDialogMsg = getString("find_bird_dialog_abort_message")
-            guessingInProgressMsg = getString("find_bird_dialog_in_progress_message")
-            hypothesisMsg = getString("find_bird_dialog_hypothesis_message")
-            finishDialogMsg = getString("find_bird_dialog_finish_message")
+            startDialogMsg = getStringWithEmoji("find_bird_dialog_start_message")
+            abortDialogMsg = getStringWithEmoji("find_bird_dialog_abort_message")
+            guessingInProgressMsg = getStringWithEmoji("find_bird_dialog_in_progress_message")
+            hypothesisMsg = getStringWithEmoji("find_bird_dialog_hypothesis_message")
+            hypothesisShortMsg = getStringWithEmoji("find_bird_dialog_hypothesis_short_message")
+            finishSuccessDialogMsg = getStringWithEmoji("find_bird_dialog_success_finish_message")
+            finishFailDialogMsg = getStringWithEmoji("find_bird_dialog_fail_finish_message")
 
-            guessingSuccessKeyboard = getString("find_bird_dialog_success_message")
-            guessingFailKeyboard = getString("find_bird_dialog_fail_message")
+            guessingSuccessKeyboard = getStringWithEmoji("find_bird_dialog_success_message")
+            guessingFailKeyboard = getStringWithEmoji("find_bird_dialog_fail_message")
         }
     }
-
 
     override fun chain(bot: Bot): ChainBuilder = bot.chain(trigger = "/guessBird") { msg ->
         bot.sendMessage(msg.chat.id, startDialogMsg)
     }.then(label = "photo_recognize_step") { msg ->
         if (msg.new_chat_photo == null && msg.photo == null) {
-            bot.sendMessage(msg.chat.id, abortDialogMsg)
-            bot.terminateChain(msg.chat.id)
+            abortChain(bot, msg.chat.id, abortDialogMsg)
             return@then
         }
         bot.sendMessage(msg.chat.id, guessingInProgressMsg)
 
-        val photos = msg.new_chat_photo.orEmpty() + msg.photo.orEmpty()
-        val localFile = photos.run { getBiggestPhotoAndSaveLocally(bot) }
-        val bestBird = birdClassifier.getBirdClassDistribution(localFile).birdById.values.maxByOrNull { it.rate }!!
-
-        val birdName = birdNamesRes.getString(BirdNameEnum.fromId(bestBird.id).name)
+        val birdDistribution = getBirdClassDistribution(msg, bot)
+        val bestBird = birdClassifierInteractor.getBirdWithHighestRate(birdDistribution)
+        birdClassDistributionByChatId[msg.chat.id] = birdDistribution
 
         bot.sendMessage(
-            msg.chat.id,
-            MessageFormat.format(
+            chatId = msg.chat.id,
+            text = MessageFormat.format(
                 hypothesisMsg,
-                birdName,
+                getBirdName(bestBird),
                 bestBird.rate.toPercentage()
             ),
             markup = ReplyKeyboardMarkup(
@@ -84,30 +90,65 @@ class GuessBirdChainPresenter(
                 )
             )
         )
-
-    }.then(isTerminal = true) { msg ->
-        bot.sendMessage(msg.chat.id, finishDialogMsg)
-        bot.terminateChain(msg.chat.id)
+    }.then { msg ->
+        var lastDialogMsg = ""
+        when (msg.text) {
+            guessingSuccessKeyboard -> {
+                lastDialogMsg = finishSuccessDialogMsg
+            }
+            guessingFailKeyboard -> {
+                val distribution = birdClassDistributionByChatId.getValue(msg.chat.id)
+                val fiveBirdsMsg = birdClassifierInteractor.getBirdsWithHighestRate(distribution).mapIndexed { index, bird ->
+                    birdWithEmojiNumber(index, bird)
+                }.joinToString("")
+                lastDialogMsg = finishFailDialogMsg + fiveBirdsMsg
+            }
+        }
+        abortChain(bot, msg.chat.id, lastDialogMsg)
     }
 
+    private fun getBirdName(bestBird: BirdClassModel) =
+        birdNamesRes.getString(BirdNameEnum.fromId(bestBird.id).name)
 
-    private fun List<PhotoSize>.getBiggestPhotoAndSaveLocally(bot: Bot): File {
-        val biggestPhoto = maxByOrNull { it.file_size }!!
-        val fileId = biggestPhoto.file_id
+    private fun abortChain(bot: Bot, chatId: Long, message: String) {
+        bot.sendMessage(chatId, message)
+        bot.terminateChain(chatId)
+    }
 
-        log.info("Step:photo_recognize_step:File id is $fileId")
+    private fun getBirdClassDistribution(
+        msg: Message,
+        bot: Bot
+    ): BirdClassDistributionModel {
+        val photos = (msg.new_chat_photo.orEmpty() + msg.photo.orEmpty()).map { it.toPhotoSizeModel() }
+        val localFile = photoInteractor.saveBiggestPhotoAsTempFile(photos) { fileId ->
+            "https://api.telegram.org/file/bot$token/${bot.getFile(fileId).get().file_path}"
+        }
 
-        val fileUrl = "https://api.telegram.org/file/bot$token/${bot.getFile(fileId).get().file_path}"
-        val stream = URL(fileUrl).openStream()
-        val localFile = File.createTempFile(
-            "telegram",
-            "jpg"
+        return birdClassifierInteractor.calcBirdClassDistribution(localFile)
+    }
+
+    private fun birdWithEmojiNumber(index: Int, bird: BirdClassModel): String {
+        val birdMsg = MessageFormat.format(
+            hypothesisShortMsg,
+            getBirdName(bird),
+            bird.rate.toPercentage()
         )
-        FileUtils.copyInputStreamToFile(stream, localFile)
-        return localFile
-    }
+        val indexEmoji = when (index) {
+            0 -> ":one:"
+            1 -> ":two:"
+            2 -> ":three:"
+            3 -> ":four:"
+            4 -> ":five:"
+            else -> ":information_source:"
+        }.toEmoji()
 
-    companion object {
-        val log: Logger = LoggerFactory.getLogger(GuessBirdChainPresenter::class.java)
+        return "$indexEmoji $birdMsg;\n"
     }
 }
+
+private fun PhotoSize.toPhotoSizeModel(): PhotoSizeModel = PhotoSizeModel(
+    fileId = file_id,
+    fileSize = file_size,
+    width = width,
+    height = height
+)
