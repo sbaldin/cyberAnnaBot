@@ -37,7 +37,7 @@ class BirdClassifier(conf: CnnConf) {
         ).asMatrix(resized)
 
         // values need to be scaled
-        val scalar: ImagePreProcessingScaler = ImagePreProcessingScaler(0.0, 1.0)
+        val scalar = ImagePreProcessingScaler(0.0, 1.0)
         // then call that scalar on the image dataset
         scalar.transform(image)
 
@@ -53,10 +53,10 @@ class BirdClassifier(conf: CnnConf) {
             )
         }.sortedByDescending { it.rate }
 
-        log.info("output:\n" + outputDistribution.joinToString())
+        log.info("output:\n" + outputDistribution.first())
 
         return BirdClassDistributionModel(
-            outputDistribution.take(3).associateByTo(LinkedHashMap()) { it.id }
+            outputDistribution.take(10).associateByTo(LinkedHashMap()) { it.id }
         )
     }
 

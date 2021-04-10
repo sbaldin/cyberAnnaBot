@@ -7,6 +7,7 @@ import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.KeyboardButton
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.ReplyKeyboardMarkup
+import com.github.sbaldin.tbot.getStringWithEmoji
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.Locale
@@ -23,12 +24,12 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
     init {
         ResourceBundle.getBundle("bot_dialogs", locale).apply {
 
-            greetingWordMsg = getString("greeting_dialog_hi_message")
-            greetingAboutBotMsg = getString("greeting_dialog_about_message")
+            greetingWordMsg = getStringWithEmoji("greeting_dialog_hi_message")
+            greetingAboutBotMsg = getStringWithEmoji("greeting_dialog_about_message")
 
-            showHelpKeyboard = getString("greeting_dialog_show_gif_keyboard")
-            cancelHelpKeyboard = getString("greeting_dialog_cancel_keyboard")
-            finishDialogKeyboard = getString("greeting_dialog_finish_keyboard")
+            showHelpKeyboard = getStringWithEmoji("greeting_dialog_show_gif_keyboard")
+            cancelHelpKeyboard = getStringWithEmoji("greeting_dialog_cancel_keyboard")
+            finishDialogKeyboard = getStringWithEmoji("greeting_dialog_finish_keyboard")
         }
     }
 
@@ -41,7 +42,7 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
                 one_time_keyboard = true,
                 keyboard = listOf(
                     listOf(
-                        KeyboardButton(showHelpKeyboard + "\uD83D\uDC66\uD83C\uDFFF"),
+                        KeyboardButton(showHelpKeyboard),
                         KeyboardButton(cancelHelpKeyboard)
                     )
                 )
@@ -57,7 +58,7 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
 
     private fun createGreetingMsg(msg: Message): String {
         val greetingWithName = msg.from?.let { "$greetingWordMsg, ${it.first_name}!" } ?: "$greetingWordMsg!"
-        return "$greetingWithName $greetingAboutBotMsg"
+        return "$greetingWithName\n $greetingAboutBotMsg"
     }
 
     companion object {

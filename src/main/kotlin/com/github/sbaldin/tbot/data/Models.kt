@@ -1,6 +1,6 @@
 package com.github.sbaldin.tbot.data
 
-// cnn config related models
+// cnn config models
 class CnnInputLayerSizeModel(
     val width: Long = 224,
     val height: Long = 224,
@@ -16,4 +16,12 @@ data class BirdClassModel(
 
 data class BirdClassDistributionModel(
     val birdById: Map<Int, BirdClassModel>
+)
+
+// photo interactor models
+data class PhotoSizeModel(
+    val fileId: String,
+    val width: Int,
+    val height: Int,
+    val fileSize: Int
 )
