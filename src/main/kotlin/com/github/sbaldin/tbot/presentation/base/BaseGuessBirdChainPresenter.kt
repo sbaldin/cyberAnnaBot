@@ -24,6 +24,8 @@ abstract class BaseGuessBirdChainPresenter(
     protected val birdInteractor: BirdClassifierInteractor
 ) : DialogChain {
 
+    protected val startChainPredicates =
+        listOf("/чтозаптица", "/чезаптица", "/чезапетух", "/guessBird", "/findBird", "/whatTheBird", "/bird")
 
     // TODO: I am not sure that kt-telegram-bot-1.3.8.jar provides thread-safe api when you work with chains, investigate how to do it right
     protected val birdClassDistributionByChatId = ConcurrentHashMap<Long, BirdClassDistributionModel>()
