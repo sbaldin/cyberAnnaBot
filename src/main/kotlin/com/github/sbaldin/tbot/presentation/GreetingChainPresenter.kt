@@ -7,7 +7,7 @@ import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.KeyboardButton
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.ReplyKeyboardMarkup
-import com.github.sbaldin.tbot.getStringWithEmoji
+import com.github.sbaldin.tbot.presentation.base.DialogChain
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.Locale
@@ -20,12 +20,13 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
     private val finishDialogKeyboard: String
     private val greetingWordMsg: String
     private val greetingAboutBotMsg: String
+    private val longHelpStoryMsg: String
 
     init {
         ResourceBundle.getBundle("bot_dialogs", locale).apply {
-
             greetingWordMsg = getStringWithEmoji("greeting_dialog_hi_message")
             greetingAboutBotMsg = getStringWithEmoji("greeting_dialog_about_message")
+            longHelpStoryMsg = getStringWithEmoji("greeting_dialog_help_msg")
 
             showHelpKeyboard = getStringWithEmoji("greeting_dialog_show_gif_keyboard")
             cancelHelpKeyboard = getStringWithEmoji("greeting_dialog_cancel_keyboard")
@@ -49,8 +50,9 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
             )
         )
     }.then { msg ->
+
         when (msg.text) {
-            showHelpKeyboard -> bot.sendMessage(msg.chat.id, "Gif will be here")
+            showHelpKeyboard -> bot.sendMessage(msg.chat.id, longHelpStoryMsg)
             cancelHelpKeyboard -> bot.sendMessage(msg.chat.id, finishDialogKeyboard)
         }
         bot.terminateChain(msg.chat.id)

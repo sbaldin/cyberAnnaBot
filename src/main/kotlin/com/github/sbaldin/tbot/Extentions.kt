@@ -1,12 +1,12 @@
 package com.github.sbaldin.tbot
 
-import com.vdurmont.emoji.EmojiParser
-import java.util.ResourceBundle
+import com.elbekD.bot.types.Message
 
 fun Double.toPercentage(): Double {
     return this * 100
 }
 
-fun ResourceBundle.getStringWithEmoji(id: String): String = EmojiParser.parseToUnicode(getString(id))
-
-fun String.toEmoji(): String = EmojiParser.parseToUnicode(this)
+fun Message.hasPhoto(): Boolean {
+    val hasNoPhoto = new_chat_photo.isNullOrEmpty() && photo.isNullOrEmpty()
+    return hasNoPhoto.not()
+}

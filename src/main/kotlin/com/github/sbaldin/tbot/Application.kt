@@ -6,8 +6,10 @@ import com.github.sbaldin.tbot.data.CnnConf
 import com.github.sbaldin.tbot.domain.BiggestPhotoInteractor
 import com.github.sbaldin.tbot.domain.BirdClassifierInteractor
 import com.github.sbaldin.tbot.presentation.GreetingChainPresenter
-import com.github.sbaldin.tbot.presentation.GuessBirdChainPresenter
+import com.github.sbaldin.tbot.presentation.GuessBirdByCmdChainPresenter
 import com.github.sbaldin.tbot.presentation.BirdGuessingBot
+import com.github.sbaldin.tbot.presentation.GuessBirdByChatMentionChainPresenter
+import com.github.sbaldin.tbot.presentation.GuessBirdByChatPhotoChainPresenter
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import com.uchuhimo.konf.toValue
@@ -48,13 +50,25 @@ object Application {
         log.info("Application locale path:$locale")
 
         val classifier = BirdClassifier(cnnConf)
+        val photoInteractor = BiggestPhotoInteractor()
+        val birdInteractor = BirdClassifierInteractor(classifier)
+
         val dialogs = listOf(
             GreetingChainPresenter(locale),
-            GuessBirdChainPresenter(
-                locale = locale,
-                token = appConf.token,
-                photoInteractor = BiggestPhotoInteractor(),
-                birdClassifierInteractor = BirdClassifierInteractor(classifier)
+            GuessBirdByCmdChainPresenter(
+                conf = appConf,
+                photoInteractor = photoInteractor,
+                birdInteractor = birdInteractor
+            ),
+            GuessBirdByChatPhotoChainPresenter(
+                conf = appConf,
+                photoInteractor = photoInteractor,
+                birdInteractor = birdInteractor
+            ),
+            GuessBirdByChatMentionChainPresenter(
+                conf = appConf,
+                photoInteractor = photoInteractor,
+                birdInteractor = birdInteractor
             )
         )
 
