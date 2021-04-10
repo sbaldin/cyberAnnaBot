@@ -7,7 +7,7 @@ import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.KeyboardButton
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.ReplyKeyboardMarkup
-import com.github.sbaldin.tbot.getStringWithEmoji
+import com.github.sbaldin.tbot.presentation.base.DialogChain
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.Locale

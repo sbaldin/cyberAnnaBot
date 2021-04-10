@@ -1,6 +1,7 @@
 package com.github.sbaldin.tbot.presentation
 
 import com.elbekD.bot.Bot
+import com.github.sbaldin.tbot.presentation.base.DialogChain
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
