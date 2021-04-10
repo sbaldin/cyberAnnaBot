@@ -32,7 +32,7 @@ plugins {
 }
 
 group 'com.github.sbaldin'
-version '0.4'
+version '0.5'
 
 mainClassName = "com.github.sbaldin.tbot.ApplicationKt"
 defaultTasks 'run'
