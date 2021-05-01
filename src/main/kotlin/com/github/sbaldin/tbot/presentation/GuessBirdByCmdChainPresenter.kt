@@ -20,7 +20,11 @@ class GuessBirdByCmdChainPresenter(
     birdInteractor: BirdClassifierInteractor
 ) : BaseGuessBirdChainPresenter(conf.locale(), conf.token, photoInteractor, birdInteractor) {
 
-    override fun chain(bot: Bot): ChainBuilder = bot.chain("guess_bird_start", { msg -> msg.text in startChainPredicates }) { msg ->
+    override fun chainPredicateFn(msg: Message): Boolean {
+        return super.chainPredicateFn(msg) && startChainPredicates.any { msg.text?.contains(it) ?: false }
+    }
+
+    override fun chain(bot: Bot): ChainBuilder = bot.chain("guess_bird_start", this::chainPredicateFn) { msg ->
         bot.sendMessage(msg.chat.id, startDialogMsg)
     }.then(label = "guess_bird_photo_guess_step") { msg ->
         if (msg.new_chat_photo == null && msg.photo == null) {
@@ -75,46 +79,47 @@ class GuessBirdByChatPhotoChainPresenter(
     birdInteractor: BirdClassifierInteractor
 ) : BaseGuessBirdChainPresenter(conf.locale(), conf.token, photoInteractor, birdInteractor) {
 
-    override fun chain(bot: Bot): ChainBuilder = bot.chain("new_photo_in_chat_start", { m -> m.hasPhoto() }) { msg ->
-        bot.sendMessage(msg.chat.id, guessingInProgressMsg)
-        val birdDistribution = getBirdClassDistribution(bot, msg)
-        val bestBird = birdInteractor.getBirdWithHighestRate(birdDistribution)
-        birdClassDistributionByChatId[msg.chat.id] = birdDistribution
+    override fun chain(bot: Bot): ChainBuilder =
+        bot.chain("new_photo_in_chat_start", { m -> m.chat.type == "private" && m.hasPhoto() }) { msg ->
+            bot.sendMessage(msg.chat.id, guessingInProgressMsg)
+            val birdDistribution = getBirdClassDistribution(bot, msg)
+            val bestBird = birdInteractor.getBirdWithHighestRate(birdDistribution)
+            birdClassDistributionByChatId[msg.chat.id] = birdDistribution
 
-        bot.sendMessage(
-            chatId = msg.chat.id,
-            text = MessageFormat.format(
-                hypothesisMsg,
-                getBirdName(bestBird),
-                bestBird.rate.toPercentage()
-            ),
-            markup = ReplyKeyboardMarkup(
-                resize_keyboard = true,
-                one_time_keyboard = true,
-                keyboard = listOf(
-                    listOf(
-                        KeyboardButton(guessingSuccessKeyboard),
-                        KeyboardButton(guessingFailKeyboard)
+            bot.sendMessage(
+                chatId = msg.chat.id,
+                text = MessageFormat.format(
+                    hypothesisMsg,
+                    getBirdName(bestBird),
+                    bestBird.rate.toPercentage()
+                ),
+                markup = ReplyKeyboardMarkup(
+                    resize_keyboard = true,
+                    one_time_keyboard = true,
+                    keyboard = listOf(
+                        listOf(
+                            KeyboardButton(guessingSuccessKeyboard),
+                            KeyboardButton(guessingFailKeyboard)
+                        )
                     )
                 )
             )
-        )
-    }.then(label = "guess_bird_photo_finish_step") { msg ->
-        var lastDialogMsg = ""
-        when (msg.text) {
-            guessingSuccessKeyboard -> {
-                lastDialogMsg = finishSuccessDialogMsg
+        }.then(label = "guess_bird_photo_finish_step") { msg ->
+            var lastDialogMsg = ""
+            when (msg.text) {
+                guessingSuccessKeyboard -> {
+                    lastDialogMsg = finishSuccessDialogMsg
+                }
+                guessingFailKeyboard -> {
+                    val distribution = birdClassDistributionByChatId.getValue(msg.chat.id)
+                    val fiveBirdsMsg = birdInteractor.getBirdsWithHighestRate(distribution).mapIndexed { index, bird ->
+                        birdWithEmojiNumber(index, bird)
+                    }.joinToString("")
+                    lastDialogMsg = finishFailDialogMsg + fiveBirdsMsg
+                }
             }
-            guessingFailKeyboard -> {
-                val distribution = birdClassDistributionByChatId.getValue(msg.chat.id)
-                val fiveBirdsMsg = birdInteractor.getBirdsWithHighestRate(distribution).mapIndexed { index, bird ->
-                    birdWithEmojiNumber(index, bird)
-                }.joinToString("")
-                lastDialogMsg = finishFailDialogMsg + fiveBirdsMsg
-            }
+            abortChain(bot, msg.chat.id, lastDialogMsg)
         }
-        abortChain(bot, msg.chat.id, lastDialogMsg)
-    }
 }
 
 class GuessBirdByChatMentionChainPresenter(
@@ -125,8 +130,12 @@ class GuessBirdByChatMentionChainPresenter(
 
     private val botName = conf.name
 
-    private fun chainPredicateFn(msg: Message) =
-        msg.text?.contains(botName) ?: false && startChainPredicates.any { msg.text?.contains(it) ?: false }
+    override fun chainPredicateFn(msg: Message): Boolean {
+        return super.chainPredicateFn(msg)
+            && msg.chat.type == "private"
+            && msg.text?.contains(botName) ?: false
+            && startChainPredicates.any { msg.text?.contains(it) ?: false }
+    }
 
     override fun chain(bot: Bot): ChainBuilder = bot.chain("mention_in_chat", this::chainPredicateFn) { msg ->
         bot.sendMessage(msg.chat.id, guessingInProgressMsg)

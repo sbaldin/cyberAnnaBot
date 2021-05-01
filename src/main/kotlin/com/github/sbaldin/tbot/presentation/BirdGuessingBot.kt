@@ -1,9 +1,12 @@
 package com.github.sbaldin.tbot.presentation
 
 import com.elbekD.bot.Bot
+import com.elbekD.bot.types.Message
+import com.elbekD.bot.types.PhotoSize
 import com.github.sbaldin.tbot.presentation.base.DialogChain
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.Date
 
 class BirdGuessingBot(
     private val botName: String,
@@ -28,7 +31,7 @@ class BirdGuessingBot(
 
     private fun addLogFilter(bot: Bot) {
         bot.onMessage { msg ->
-            log.info("msg:$msg")
+            log.info("msg:${msg.toLightMessageModel()}")
         }
     }
 
@@ -42,4 +45,22 @@ class BirdGuessingBot(
     companion object {
         val log: Logger = LoggerFactory.getLogger(BirdGuessingBot::class.java)
     }
+}
+private data class LightMessageModel(
+    val message_id: Int,
+    val from: String?,
+    val sender_chat: String?,
+    val date: Int,
+    val text: String?,
+    val photo: PhotoSize?,
+)
+private fun Message.toLightMessageModel(): LightMessageModel {
+    return LightMessageModel(
+        message_id = this.message_id,
+        from = this.from?.username,
+        sender_chat = this.sender_chat?.title,
+        date = this.date.also { Date(it * 100L) },
+        text = this.text,
+        photo = this.photo?.maxByOrNull { it.file_size },
+    )
 }
