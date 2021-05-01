@@ -52,7 +52,7 @@ kotlinter {
     indentSize = 4
     reporters = ['checkstyle', 'plain']
     experimentalRules = true
-    disabledRules = ['import-ordering', 'experimental:argument-list-wrapping', 'final-newline']
+    disabledRules = ['import-ordering', 'experimental:argument-list-wrapping', 'final-newline', 'chain-wrapping']
 }
 
 dependencies {
@@ -108,10 +108,10 @@ dependencies {
 }
 
 compileKotlin {
-    kotlinOptions.jvmTarget = "14"
+    kotlinOptions.jvmTarget = "11"
 }
 compileTestKotlin {
-    kotlinOptions.jvmTarget = "14"
+    kotlinOptions.jvmTarget = "11"
 }
 test {
     useJUnitPlatform {
@@ -120,7 +120,7 @@ test {
 }
 
 application {
-    applicationDefaultJvmArgs = ['-Xmx500m']
+    applicationDefaultJvmArgs = ['-Xmx256m']
 }
 
 tasks.withType(JavaExec) {
@@ -154,7 +154,7 @@ task ktlint(type: JavaExec, group: "verification") {
     // "--reporter=plain", "--reporter=checkstyle,output=${buildDir}/ktlint.xml"
     // see https://github.com/pinterest/ktlint#usage for more
 }
-check.dependsOn ktlint
+//check.dependsOn ktlint
 
 task ktlintFormat(type: JavaExec, group: "formatting") {
     description = "Fix Kotlin code style deviations."
@@ -197,3 +197,5 @@ task deleteGitHooks(type: Delete,  group: "git hooks") {
 afterEvaluate {
     tasks["clean"].dependsOn(tasks.named("installGitHooks"))
 }
+
+check.dependsOn tasks.ktlint

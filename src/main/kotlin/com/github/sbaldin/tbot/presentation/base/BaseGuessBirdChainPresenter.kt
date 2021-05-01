@@ -13,6 +13,8 @@ import com.github.sbaldin.tbot.domain.BirdClassifierInteractor
 import com.github.sbaldin.tbot.toPercentage
 import com.vdurmont.emoji.EmojiParser
 import java.text.MessageFormat
+import java.time.Duration
+import java.time.Instant
 import java.util.Locale
 import java.util.ResourceBundle
 import java.util.concurrent.ConcurrentHashMap
@@ -27,7 +29,7 @@ abstract class BaseGuessBirdChainPresenter(
     protected val startChainPredicates =
         listOf("/чтозаптица", "/чезаптица", "/чезапетух", "/guessBird", "/findBird", "/whatTheBird", "/bird")
 
-    // TODO: I am not sure that kt-telegram-bot-1.3.8.jar provides thread-safe api when you work with chains, investigate how to do it right
+    // TODO: I am not sure that kt-telegram-bot-1.3.8.jar provides thread-safe api when you work with chains, investigate how to do it correctly
     protected val birdClassDistributionByChatId = ConcurrentHashMap<Long, BirdClassDistributionModel>()
     protected val birdNamesRes: ResourceBundle = ResourceBundle.getBundle("bird_name", locale)
 
@@ -56,6 +58,8 @@ abstract class BaseGuessBirdChainPresenter(
             guessingFailKeyboard = getStringWithEmoji("find_bird_dialog_fail_message")
         }
     }
+
+    protected open fun chainPredicateFn(msg: Message): Boolean = isMessageWasSendInLast5minutes(msg)
 
     protected fun getBirdClassDistribution(bot: Bot, msg: Message): BirdClassDistributionModel {
         val photos = (msg.new_chat_photo.orEmpty() + msg.photo.orEmpty()).map { it.toPhotoSizeModel() }
@@ -93,4 +97,14 @@ abstract class BaseGuessBirdChainPresenter(
         width = width,
         height = height
     )
+}
+
+private fun isMessageWasSendInLast5minutes(msg: Message): Boolean {
+    val now = Instant.now()
+    val msgDate = Instant.ofEpochMilli(msg.date * 1000L)
+
+    val diff = Duration.between(msgDate, now).toSeconds()
+    val fiveMinuteInterval = 300
+
+    return diff < fiveMinuteInterval
 }
