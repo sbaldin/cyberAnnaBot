@@ -4,12 +4,15 @@ import com.elbekD.bot.Bot
 import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.PhotoSize
+import com.elbekD.bot.types.ReplyKeyboardMarkup
 import com.github.sbaldin.tbot.data.BirdClassDistributionModel
 import com.github.sbaldin.tbot.data.BirdClassModel
+import com.github.sbaldin.tbot.data.MessageBirdDistributionModel
 import com.github.sbaldin.tbot.data.PhotoSizeModel
 import com.github.sbaldin.tbot.data.enum.BirdNameEnum
-import com.github.sbaldin.tbot.domain.BiggestPhotoInteractor
+import com.github.sbaldin.tbot.domain.PhotoInteractor
 import com.github.sbaldin.tbot.domain.BirdClassifierInteractor
+import com.github.sbaldin.tbot.domain.GuessingStateHandler
 import com.github.sbaldin.tbot.toPercentage
 import com.vdurmont.emoji.EmojiParser
 import java.text.MessageFormat
@@ -22,16 +25,17 @@ import java.util.concurrent.ConcurrentHashMap
 abstract class BaseGuessBirdChainPresenter(
     locale: Locale,
     private val token: String,
-    private val photoInteractor: BiggestPhotoInteractor,
+    private val photoInteractor: PhotoInteractor,
     protected val birdInteractor: BirdClassifierInteractor
 ) : DialogChain {
 
-    protected val startChainPredicates =
-        listOf("/чтозаптица", "/чезаптица", "/чезапетух", "/guessBird", "/findBird", "/whatTheBird", "/bird")
+    protected val startChainPredicates = listOf("/guessBird", "/findBird", "/whatsBird", "/bird")
 
     // TODO: I am not sure that kt-telegram-bot-1.3.8.jar provides thread-safe api when you work with chains, investigate how to do it correctly
-    protected val birdClassDistributionByChatId = ConcurrentHashMap<Long, BirdClassDistributionModel>()
+    protected val birdClassDistributionByChatId = ConcurrentHashMap<Long, MessageBirdDistributionModel>()
     protected val birdNamesRes: ResourceBundle = ResourceBundle.getBundle("bird_name", locale)
+
+    protected val stateHandler = GuessingStateHandler(photoInteractor)
 
     protected val startDialogMsg: String
     protected val abortDialogMsg: String
@@ -63,7 +67,7 @@ abstract class BaseGuessBirdChainPresenter(
 
     protected fun getBirdClassDistribution(bot: Bot, msg: Message): BirdClassDistributionModel {
         val photos = (msg.new_chat_photo.orEmpty() + msg.photo.orEmpty()).map { it.toPhotoSizeModel() }
-        val localFile = photoInteractor.saveBiggestPhotoAsTempFile(photos) { fileId ->
+        val localFile = photoInteractor.savePhotoToStorage(msg.message_id, photos) { fileId ->
             "https://api.telegram.org/file/bot$token/${bot.getFile(fileId).get().file_path}"
         }
 
@@ -86,8 +90,30 @@ abstract class BaseGuessBirdChainPresenter(
         return "$indexEmoji $birdMsg;\n"
     }
 
+    fun handleGuessingResults(msg: Message, onSuccess: (BirdClassDistributionModel) -> Unit, onFail: (BirdClassDistributionModel) -> Unit) {
+        val (msgId, birdDistribution) = birdClassDistributionByChatId.getValue(msg.chat.id)
+        when (msg.text) {
+            guessingSuccessKeyboard -> {
+                onSuccess(birdDistribution)
+                stateHandler.onSuccessGuessing(msgId)
+            }
+            guessingFailKeyboard -> {
+                onFail(birdDistribution)
+                stateHandler.onFailedGuessing(msgId)
+            }
+        }
+    }
+
     fun abortChain(bot: Bot, chatId: Long, message: String) {
-        bot.sendMessage(chatId, message)
+        bot.sendMessage(
+            chatId, message, markup = ReplyKeyboardMarkup(
+                resize_keyboard = true,
+                one_time_keyboard = true,
+                keyboard = listOf(
+                    listOf()
+                )
+            )
+        )
         bot.terminateChain(chatId)
     }
 

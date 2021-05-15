@@ -5,7 +5,8 @@ import java.util.Locale
 data class BotConf(
     val name: String,
     val locale: String,
-    val token: String
+    val token: String,
+    val photoDestinationDir: String
 ) {
     fun locale(): Locale = Locale(locale.toLowerCase(), locale.toUpperCase())
 }
