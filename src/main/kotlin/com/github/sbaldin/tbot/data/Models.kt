@@ -18,6 +18,13 @@ data class BirdClassDistributionModel(
     val birdById: Map<Int, BirdClassModel>
 )
 
+data class MessageBirdDistributionModel(
+    // we need messageId to react to wrong or correct recognizing of a bird
+    // e.g. we want to move photo from message to training dataset if Net produced wrong answer
+    val messageId: Int,
+    val birds: BirdClassDistributionModel
+)
+
 // photo interactor models
 data class PhotoSizeModel(
     val fileId: String,

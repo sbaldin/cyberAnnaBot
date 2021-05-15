@@ -3,7 +3,7 @@ package com.github.sbaldin.tbot
 import com.github.sbaldin.tbot.domain.BirdClassifier
 import com.github.sbaldin.tbot.data.BotConf
 import com.github.sbaldin.tbot.data.CnnConf
-import com.github.sbaldin.tbot.domain.BiggestPhotoInteractor
+import com.github.sbaldin.tbot.domain.PhotoInteractor
 import com.github.sbaldin.tbot.domain.BirdClassifierInteractor
 import com.github.sbaldin.tbot.presentation.GreetingChainPresenter
 import com.github.sbaldin.tbot.presentation.GuessBirdByCmdChainPresenter
@@ -50,7 +50,7 @@ object Application {
         log.info("Application locale path:$locale")
 
         val classifier = BirdClassifier(cnnConf)
-        val photoInteractor = BiggestPhotoInteractor()
+        val photoInteractor = PhotoInteractor(appConf.photoDestinationDir)
         val birdInteractor = BirdClassifierInteractor(classifier)
 
         val dialogs = listOf(
