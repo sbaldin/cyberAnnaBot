@@ -1,5 +1,8 @@
 package com.github.sbaldin.tbot.data
 
+import com.github.sbaldin.tbot.data.enums.ObjectDetectionLabelEnum
+import java.io.File
+
 // cnn config models
 class CnnInputLayerSizeModel(
     val width: Long = 224,
@@ -32,3 +35,31 @@ data class PhotoSizeModel(
     val height: Int,
     val fileSize: Int
 )
+
+// object detector models
+data class DetectedObjectModel(
+    val topLeftX: Int = 0,
+    val topLeftY: Int = 0,
+    val bottomRightX: Int = 0,
+    val bottomRightY: Int = 0,
+    val width: Int = 0,
+    val height: Int = 0
+)
+
+sealed class ObjectDetectionResultModel(
+    open val label: ObjectDetectionLabelEnum,
+    open val initialPhoto: File
+)
+
+class ObjectDetectionSuccessfulModel(
+    override val label: ObjectDetectionLabelEnum,
+    override val initialPhoto: File,
+    val labeledPhoto: File,
+    val detectedObjects: List<DetectedObjectModel>,
+) : ObjectDetectionResultModel(label, initialPhoto)
+
+class ObjectDetectionFailedModel(
+    override val label: ObjectDetectionLabelEnum,
+    override val initialPhoto: File,
+    val reason: String,
+) : ObjectDetectionResultModel(label, initialPhoto)

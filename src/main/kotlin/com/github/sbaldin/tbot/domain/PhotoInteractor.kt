@@ -16,13 +16,13 @@ class PhotoInteractor(private val photoStorageDir: String) {
 
     @Throws(DownloadPhotoException::class)
     fun savePhotoToStorage(messageId: Int, photos: List<PhotoSizeModel>, fileUrlProvider: (String) -> String): File {
-        log.info("Saving Biggest photo from list ${photos.joinToString()}")
         val photoFolder = Path.of(photoStorageDir)
 
         if (!Files.exists(photoFolder)) {
             Files.createDirectories(photoFolder)
         }
         val photoIndex = "$messageId.jpg"
+        log.info("Saving photo ${photoIndex}")
         val localFile = Files.createFile(Path.of(photoStorageDir, photoIndex)).toFile()
 
         val fileId = getBiggestPhoto(photos)

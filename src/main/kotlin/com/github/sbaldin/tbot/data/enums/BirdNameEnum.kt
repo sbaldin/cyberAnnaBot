@@ -1,4 +1,4 @@
-package com.github.sbaldin.tbot.data.enum
+package com.github.sbaldin.tbot.data.enums
 
 enum class BirdNameEnum(val id: Int, internal val title: String) {
     /**
