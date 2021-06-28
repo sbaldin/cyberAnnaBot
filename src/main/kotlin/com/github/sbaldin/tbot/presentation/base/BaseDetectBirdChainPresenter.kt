@@ -18,13 +18,12 @@ abstract class BaseBirdDetectionChainPresenter(
     private val detectionInteractor: BirdDetectionInteractor,
     private val imageCropInteractor: ImageCropInteractor,
 ) : BaseGuessBirdChainPresenter(locale, token, photoInteractor, classificationInteractor) {
-    // TODO: don't use chat id as key for holding long-term data,
-    // TODO: because chat id is not unique for case when two users uses bot simultaneously
+
     private val detectedObjectByChatId = ConcurrentHashMap<Int, ObjectDetectionResultModel>()
 
     protected fun detectBirds(bot: Bot, msg: Message): ObjectDetectionResultModel {
         val photos = (msg.new_chat_photo.orEmpty() + msg.photo.orEmpty()).map { it.toPhotoSizeModel() }
-        val localFile = photoInteractor.savePhotoToStorage(msg.message_id, photos) { fileId ->
+        val localFile = photoInteractor.savePhotoToStorage(getUniqueId(msg.chat.id, msg.from?.id), photos) { fileId ->
             "https://api.telegram.org/file/bot$token/${bot.getFile(fileId).get().file_path}"
         }
 

@@ -81,9 +81,9 @@ class GuessBirdByCmdChainPresenter(
         val id = getUniqueId(msg.chat.id, msg.from?.id)
         log.info("Bird Classification: ${bestBird.title}")
 
-        // we need messageId to react to wrong or correct recognizing of a bird
+        // we need unique id to react to wrong or correct recognizing of a bird
         // e.g. we want to move photo from message to training dataset if Net produced wrong answer
-        birdClassDistributionByChatId[id] = MessageBirdDistributionModel(msg.message_id, birdDistribution)
+        birdClassDistributionByChatId[id] = birdDistribution
 
         bot.sendMessage(
             chatId = msg.chat.id,
@@ -135,9 +135,9 @@ class GuessBirdByChatPhotoChainPresenter(
             bot.sendMessage(msg.chat.id, guessingInProgressMsg)
             val birdDistribution = getBirdClassDistribution(bot, msg)
             val bestBird = birdInteractor.getBirdWithHighestRate(birdDistribution)
-            val id = getUniqueId(msg.chat.id, msg.from?.id)
 
-            birdClassDistributionByChatId[id] = MessageBirdDistributionModel(msg.message_id, birdDistribution)
+            val id = getUniqueId(msg.chat.id, msg.from?.id)
+            birdClassDistributionByChatId[id] = birdDistribution
 
             bot.sendMessage(
                 chatId = msg.chat.id,
@@ -197,7 +197,7 @@ class GuessBirdByChatMentionChainPresenter(
         val bestBird = birdInteractor.getBirdWithHighestRate(birdDistribution)
         val id = getUniqueId(msg.chat.id, msg.from?.id)
 
-        birdClassDistributionByChatId[id] = MessageBirdDistributionModel(msg.message_id, birdDistribution)
+        birdClassDistributionByChatId[id] = birdDistribution
 
         bot.sendMessage(
             chatId = msg.chat.id,

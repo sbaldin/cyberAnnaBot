@@ -6,7 +6,6 @@ import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.ReplyKeyboardMarkup
 import com.github.sbaldin.tbot.data.BirdClassDistributionModel
 import com.github.sbaldin.tbot.data.BirdClassModel
-import com.github.sbaldin.tbot.data.MessageBirdDistributionModel
 import com.github.sbaldin.tbot.data.enums.BirdNameEnum
 import com.github.sbaldin.tbot.domain.PhotoInteractor
 import com.github.sbaldin.tbot.domain.BirdClassificationInteractor
@@ -30,7 +29,7 @@ abstract class BaseGuessBirdChainPresenter(
     protected val startChainPredicates = listOf("/guessBird", "/findBird", "/whatsBird", "/bird")
 
     // TODO: I am not sure that kt-telegram-bot-1.3.8.jar provides thread-safe api when you work with chains, investigate how to do it correctly
-    protected val birdClassDistributionByChatId = ConcurrentHashMap<Int, MessageBirdDistributionModel>()
+    protected val birdClassDistributionByChatId = ConcurrentHashMap<Int, BirdClassDistributionModel>()
     protected val birdNamesRes: ResourceBundle = ResourceBundle.getBundle("bird_name", locale)
 
     protected val stateHandler = GuessingStateHandler(photoInteractor)
@@ -78,7 +77,7 @@ abstract class BaseGuessBirdChainPresenter(
         birdClassDistributionByChatId.remove(getUniqueId(chatId, userId))
     }
 
-    protected fun getUniqueId(chatId: Long, userId: Int?) = Objects.hash(chatId, userId)
+    protected fun getUniqueId(chatId: Long, userId: Int?) = Objects.hash(chatId, userId).unaryPlus()
 
     protected open fun getBirdClassDistribution(bot: Bot, msg: Message): BirdClassDistributionModel {
         val photos = (msg.new_chat_photo.orEmpty() + msg.photo.orEmpty()).map { it.toPhotoSizeModel() }
@@ -106,15 +105,16 @@ abstract class BaseGuessBirdChainPresenter(
     }
 
     fun handleGuessingResults(msg: Message, onSuccess: (BirdClassDistributionModel) -> Unit, onFail: (BirdClassDistributionModel) -> Unit) {
-        val (msgId, birdDistribution) = birdClassDistributionByChatId.getValue(getUniqueId(msg.chat.id, msg.from?.id))
+        val id = getUniqueId(msg.chat.id, msg.from?.id)
+        val birdDistribution = birdClassDistributionByChatId.getValue(id)
         when (msg.text) {
             guessingSuccessKeyboard -> {
                 onSuccess(birdDistribution)
-                stateHandler.onSuccessGuessing(msgId)
+                stateHandler.onSuccessGuessing(id)
             }
             guessingFailKeyboard -> {
                 onFail(birdDistribution)
-                stateHandler.onFailedGuessing(msgId)
+                stateHandler.onFailedGuessing(id)
             }
         }
     }
