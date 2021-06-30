@@ -7,23 +7,25 @@ import com.elbekD.bot.types.ReplyKeyboardMarkup
 import com.github.sbaldin.tbot.data.BirdClassDistributionModel
 import com.github.sbaldin.tbot.data.BirdClassModel
 import com.github.sbaldin.tbot.data.enums.BirdNameEnum
-import com.github.sbaldin.tbot.domain.PhotoInteractor
 import com.github.sbaldin.tbot.domain.BirdClassificationInteractor
 import com.github.sbaldin.tbot.domain.GuessingStateHandler
+import com.github.sbaldin.tbot.domain.PhotoInteractor
 import com.github.sbaldin.tbot.toPercentage
 import com.github.sbaldin.tbot.toPhotoSizeModel
 import com.vdurmont.emoji.EmojiParser
 import java.text.MessageFormat
 import java.time.Duration
 import java.time.Instant
-import java.util.*
+import java.util.Locale
+import java.util.Objects
+import java.util.ResourceBundle
 import java.util.concurrent.ConcurrentHashMap
 
 abstract class BaseGuessBirdChainPresenter(
     locale: Locale,
     private val token: String,
     private val photoInteractor: PhotoInteractor,
-    protected val birdInteractor: BirdClassificationInteractor
+    protected val birdInteractor: BirdClassificationInteractor,
 ) : DialogChain {
 
     protected val startChainPredicates = listOf("/guessBird", "/findBird", "/whatsBird", "/bird")
@@ -71,6 +73,7 @@ abstract class BaseGuessBirdChainPresenter(
             guessingFailKeyboard = getStringWithEmoji("find_bird_dialog_fail_message")
         }
     }
+
     protected open fun chainPredicateFn(msg: Message): Boolean = isMessageWasSendInLast5minutes(msg)
 
     protected open fun clearState(chatId: Long, userId: Int?) {
@@ -104,7 +107,11 @@ abstract class BaseGuessBirdChainPresenter(
         return "$indexEmoji $birdMsg;\n"
     }
 
-    fun handleGuessingResults(msg: Message, onSuccess: (BirdClassDistributionModel) -> Unit, onFail: (BirdClassDistributionModel) -> Unit) {
+    fun handleGuessingResults(
+        msg: Message,
+        onSuccess: (BirdClassDistributionModel) -> Unit,
+        onFail: (BirdClassDistributionModel) -> Unit,
+    ) {
         val id = getUniqueId(msg.chat.id, msg.from?.id)
         val birdDistribution = birdClassDistributionByChatId.getValue(id)
         when (msg.text) {
@@ -121,18 +128,19 @@ abstract class BaseGuessBirdChainPresenter(
 
     fun abortChain(bot: Bot, chatId: Long, userId: Int?, message: String) {
         bot.sendMessage(
-            chatId, message, markup = ReplyKeyboardMarkup(
+            chatId,
+            message,
+            markup = ReplyKeyboardMarkup(
                 resize_keyboard = true,
                 one_time_keyboard = true,
                 keyboard = listOf(
-                    listOf()
-                )
-            )
+                    listOf(),
+                ),
+            ),
         )
         clearState(chatId, userId)
         bot.terminateChain(chatId)
     }
-
 }
 
 private fun isMessageWasSendInLast5minutes(msg: Message): Boolean {

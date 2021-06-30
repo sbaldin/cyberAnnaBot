@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 import java.io.File
 
 class BirdClassificationInteractor(
-    private val birdClassifier: BirdClassifier
+    private val birdClassifier: BirdClassifier,
 ) {
 
     fun calcBirdClassDistribution(savedPhoto: File) = birdClassifier.getBirdClassDistribution(savedPhoto)

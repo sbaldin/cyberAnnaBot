@@ -21,7 +21,6 @@ import java.io.File
 import java.nio.file.Path
 import javax.imageio.ImageIO
 
-
 class ObjectDetector(
     private val model: ComputationGraph = TinyYOLO.builder().build().initPretrained() as ComputationGraph,
     private val loader: NativeImageLoader = NativeImageLoader(416, 416, 3),
@@ -29,37 +28,11 @@ class ObjectDetector(
 ) {
     private val labels = arrayOf(
         "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow",
-        "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"
+        "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor",
     )
     private val detectionThreshold = 0.4
     private val gridWidth = 13
     private val gridHeight = 13
-
-/*    private fun detectWithMaxConfidence(birdPhoto: File):ObjectDetectionResultModel = log.measure("Detect object with max confedence") {
-        val detectedObjects = applyModel(birdPhoto)
-        val detectedObjectWithMaxConfidence = detectedObjects.maxByOrNull { it.confidence }
-        if (detectedObjectWithMaxConfidence != null) {
-            val labelId = detectedObjectWithMaxConfidence.classPredictions.getInt(0, 0)
-            ObjectDetectionSuccessfulModel(
-                label = ObjectDetectionLabelEnum.values()[labelId],
-                labeledPhoto = drawDetectedObjects(birdPhoto, detectedObjects),
-                detectedObjects = listOf(detectedObjectWithMaxConfidence).map {
-                    DetectedObjectModel(
-                        it.centerX,
-                        it.centerY,
-                        it.width,
-                        it.height,
-                    )
-                }
-            )
-        } else {
-            ObjectDetectionFailedModel(
-                label = requestedLabel,
-                reason = "Couldn't find the requested label on photo."
-            )
-        }
-    }*/
-
 
     fun detect(requestedLabel: ObjectDetectionLabelEnum, birdPhoto: File): ObjectDetectionResultModel =
         log.measure("Detect object with label:$requestedLabel") {
@@ -81,17 +54,16 @@ class ObjectDetector(
                             bottomRightX - topLeftX,
                             bottomRightY - topLeftY,
                         )
-                    }
+                    },
                 )
             } else {
                 ObjectDetectionFailedModel(
                     label = requestedLabel,
                     initialPhoto = birdPhoto,
-                    reason = "Couldn't find the requested label on photo."
+                    reason = "Couldn't find the requested label on photo.",
                 )
             }
         }
-
 
     private fun applyModel(birdPhoto: File): List<DetectedObject> {
         val imagePreProcessingScaler = ImagePreProcessingScaler(0.0, 1.0)
@@ -120,7 +92,7 @@ class ObjectDetector(
         return file
     }
 
-    //TODO make it more safe and less ugly
+    // TODO make it more safe and less ugly
     private fun scaleCoordinates(
         obj: DetectedObject,
         img: BufferedImage,

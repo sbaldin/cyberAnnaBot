@@ -21,6 +21,4 @@ enum class ObjectDetectionLabelEnum {
     SOFA,
     TRAIN,
     TVMONITOR;
-
 }
-

@@ -2,19 +2,17 @@ package com.github.sbaldin.domain.interactors
 
 import com.github.sbaldin.tbot.data.DetectedObjectModel
 import com.github.sbaldin.tbot.domain.image.cropping.ImageCropper
-import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
-import org.jetbrains.spek.api.dsl.on
 import java.awt.Color
-import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.awt.image.DirectColorModel
 import java.io.File
 import java.nio.file.Files
 import javax.imageio.ImageIO
 import kotlin.test.assertEquals
-
+import org.jetbrains.spek.api.Spek
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 
 class ImageCropperSpeck : Spek({
     given("Image Cropper") {
@@ -24,7 +22,8 @@ class ImageCropperSpeck : Spek({
             objectToCropping.topLeftX,
             objectToCropping.topLeftY,
             objectToCropping.width,
-            objectToCropping.height)
+            objectToCropping.height,
+        )
 
         on("cropping 100x200 image") {
             val croppedImage = cropper.crop(1, 1, objectToCropping, imageToCropping)

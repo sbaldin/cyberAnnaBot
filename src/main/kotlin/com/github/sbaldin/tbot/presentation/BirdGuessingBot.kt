@@ -11,7 +11,7 @@ import java.util.Date
 class BirdGuessingBot(
     private val botName: String,
     private val token: String,
-    private val dialogs: List<DialogChain>
+    private val dialogs: List<DialogChain>,
 ) {
 
     fun start() {
@@ -46,6 +46,7 @@ class BirdGuessingBot(
         val log: Logger = LoggerFactory.getLogger(BirdGuessingBot::class.java)
     }
 }
+
 private data class LightMessageModel(
     val message_id: Int,
     val from: String?,
@@ -54,6 +55,7 @@ private data class LightMessageModel(
     val text: String?,
     val photo: PhotoSize?,
 )
+
 private fun Message.toLightMessageModel(): LightMessageModel {
     return LightMessageModel(
         message_id = this.message_id,

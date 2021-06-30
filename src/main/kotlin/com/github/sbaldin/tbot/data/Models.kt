@@ -7,18 +7,18 @@ import java.io.File
 class CnnInputLayerSizeModel(
     val width: Long = 224,
     val height: Long = 224,
-    val channels: Long = 3
+    val channels: Long = 3,
 )
 
 // bird classifier models
 data class BirdClassModel(
     val id: Int,
     val title: String,
-    val rate: Double // probability that input image belongs to this class
+    val rate: Double, // probability that input image belongs to this class
 )
 
 data class BirdClassDistributionModel(
-    val birdById: Map<Int, BirdClassModel>
+    val birdById: Map<Int, BirdClassModel>,
 )
 
 // photo interactor models
@@ -26,7 +26,7 @@ data class PhotoSizeModel(
     val fileId: String,
     val width: Int,
     val height: Int,
-    val fileSize: Int
+    val fileSize: Int,
 )
 
 // object detector models
@@ -36,12 +36,12 @@ data class DetectedObjectModel(
     val bottomRightX: Int = 0,
     val bottomRightY: Int = 0,
     val width: Int = 0,
-    val height: Int = 0
+    val height: Int = 0,
 )
 
 sealed class ObjectDetectionResultModel(
     open val label: ObjectDetectionLabelEnum,
-    open val initialPhoto: File
+    open val initialPhoto: File,
 )
 
 class ObjectDetectionSuccessfulModel(

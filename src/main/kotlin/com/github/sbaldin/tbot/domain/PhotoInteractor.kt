@@ -1,7 +1,6 @@
 package com.github.sbaldin.tbot.domain
 
 import com.github.sbaldin.tbot.data.PhotoSizeModel
-import kotlin.jvm.Throws
 import org.apache.commons.io.FileUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,9 +22,9 @@ class PhotoInteractor(private val photoStorageDir: String) {
             Files.createDirectories(photoFolder)
         }
         val localPhotoFilePath = Path.of(photoStorageDir, photoIndex)
-        val localFile = if(Files.exists(localPhotoFilePath)){
+        val localFile = if (Files.exists(localPhotoFilePath)) {
             localPhotoFilePath.toFile()
-        }else{
+        } else {
             Files.createFile(localPhotoFilePath).toFile()
         }
         log.info("Saving photo $photoIndex")

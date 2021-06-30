@@ -45,7 +45,9 @@ repositories {
     mavenCentral()
     maven { url "https://jitpack.io" }
 }
-
+ktlint {
+    version = "0.41.0"
+}
 kotlinter {
     ignoreFailures = false
     indentSize = 4

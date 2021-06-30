@@ -6,7 +6,9 @@ import com.elbekD.bot.feature.chain.chain
 import com.elbekD.bot.types.KeyboardButton
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.ReplyKeyboardMarkup
-import com.github.sbaldin.tbot.data.*
+import com.github.sbaldin.tbot.data.BotConf
+import com.github.sbaldin.tbot.data.ObjectDetectionFailedModel
+import com.github.sbaldin.tbot.data.ObjectDetectionSuccessfulModel
 import com.github.sbaldin.tbot.domain.BirdClassificationInteractor
 import com.github.sbaldin.tbot.domain.BirdDetectionInteractor
 import com.github.sbaldin.tbot.domain.ImageCropInteractor
@@ -27,13 +29,13 @@ class GuessBirdByCmdChainPresenter(
     classificationInteractor: BirdClassificationInteractor,
     detectionInteractor: BirdDetectionInteractor,
     imageCropInteractor: ImageCropInteractor,
-    ) : BaseBirdDetectionChainPresenter(
+) : BaseBirdDetectionChainPresenter(
     conf.locale(),
     conf.token,
     photoInteractor,
     classificationInteractor,
     detectionInteractor,
-    imageCropInteractor
+    imageCropInteractor,
 ) {
 
     override fun chainPredicateFn(msg: Message): Boolean {
@@ -60,10 +62,9 @@ class GuessBirdByCmdChainPresenter(
                     markup = ReplyKeyboardMarkup(
                         resize_keyboard = true,
                         one_time_keyboard = true,
-                        keyboard = listOf(keyboard)
-                    )
+                        keyboard = listOf(keyboard),
+                    ),
                 )
-
             }
             is ObjectDetectionFailedModel -> {
                 log.info("Bird detection was failed! Reason:${objectDetectionResult.reason}.")
@@ -90,7 +91,7 @@ class GuessBirdByCmdChainPresenter(
             text = MessageFormat.format(
                 hypothesisMsg,
                 getBirdName(bestBird),
-                bestBird.rate.toPercentage()
+                bestBird.rate.toPercentage(),
             ),
             markup = ReplyKeyboardMarkup(
                 resize_keyboard = true,
@@ -98,10 +99,10 @@ class GuessBirdByCmdChainPresenter(
                 keyboard = listOf(
                     listOf(
                         KeyboardButton(guessingSuccessKeyboard),
-                        KeyboardButton(guessingFailKeyboard)
-                    )
-                )
-            )
+                        KeyboardButton(guessingFailKeyboard),
+                    ),
+                ),
+            ),
         )
     }.then(label = "guess_bird_photo_finish_step") { msg ->
         log.info("Finishing step. With message: ${msg.text}")
@@ -117,7 +118,7 @@ class GuessBirdByCmdChainPresenter(
                     birdWithEmojiNumber(index, bird)
                 }.joinToString("")
                 lastDialogMsg = finishFailDialogMsg + fiveBirdsMsg
-            }
+            },
         )
 
         abortChain(bot, msg.chat.id, msg.from?.id, lastDialogMsg)
@@ -127,7 +128,7 @@ class GuessBirdByCmdChainPresenter(
 class GuessBirdByChatPhotoChainPresenter(
     conf: BotConf,
     photoInteractor: PhotoInteractor,
-    birdInteractor: BirdClassificationInteractor
+    birdInteractor: BirdClassificationInteractor,
 ) : BaseGuessBirdChainPresenter(conf.locale(), conf.token, photoInteractor, birdInteractor) {
 
     override fun chain(bot: Bot): ChainBuilder =
@@ -144,7 +145,7 @@ class GuessBirdByChatPhotoChainPresenter(
                 text = MessageFormat.format(
                     hypothesisMsg,
                     getBirdName(bestBird),
-                    bestBird.rate.toPercentage()
+                    bestBird.rate.toPercentage(),
                 ),
                 markup = ReplyKeyboardMarkup(
                     resize_keyboard = true,
@@ -152,10 +153,10 @@ class GuessBirdByChatPhotoChainPresenter(
                     keyboard = listOf(
                         listOf(
                             KeyboardButton(guessingSuccessKeyboard),
-                            KeyboardButton(guessingFailKeyboard)
-                        )
-                    )
-                )
+                            KeyboardButton(guessingFailKeyboard),
+                        ),
+                    ),
+                ),
             )
         }.then(label = "guess_bird_photo_finish_step") { msg ->
             var lastDialogMsg = ""
@@ -169,7 +170,7 @@ class GuessBirdByChatPhotoChainPresenter(
                         birdWithEmojiNumber(index, bird)
                     }.joinToString("")
                     lastDialogMsg = finishFailDialogMsg + fiveBirdsMsg
-                }
+                },
             )
 
             abortChain(bot, msg.chat.id, msg.from?.id, lastDialogMsg)
@@ -179,16 +180,16 @@ class GuessBirdByChatPhotoChainPresenter(
 class GuessBirdByChatMentionChainPresenter(
     conf: BotConf,
     photoInteractor: PhotoInteractor,
-    birdInteractor: BirdClassificationInteractor
+    birdInteractor: BirdClassificationInteractor,
 ) : BaseGuessBirdChainPresenter(conf.locale(), conf.token, photoInteractor, birdInteractor) {
 
     private val botName = conf.name
 
     override fun chainPredicateFn(msg: Message): Boolean {
-        return super.chainPredicateFn(msg)
-                && msg.chat.type == "private"
-                && msg.text?.contains(botName) ?: false
-                && startChainPredicates.any { msg.text?.contains(it) ?: false }
+        return super.chainPredicateFn(msg) &&
+            msg.chat.type == "private" &&
+            msg.text?.contains(botName) ?: false &&
+            startChainPredicates.any { msg.text?.contains(it) ?: false }
     }
 
     override fun chain(bot: Bot): ChainBuilder = bot.chain("mention_in_chat", this::chainPredicateFn) { msg ->
@@ -204,7 +205,7 @@ class GuessBirdByChatMentionChainPresenter(
             text = MessageFormat.format(
                 hypothesisMsg,
                 getBirdName(bestBird),
-                bestBird.rate.toPercentage()
+                bestBird.rate.toPercentage(),
             ),
             markup = ReplyKeyboardMarkup(
                 resize_keyboard = true,
@@ -212,10 +213,10 @@ class GuessBirdByChatMentionChainPresenter(
                 keyboard = listOf(
                     listOf(
                         KeyboardButton(guessingSuccessKeyboard),
-                        KeyboardButton(guessingFailKeyboard)
-                    )
-                )
-            )
+                        KeyboardButton(guessingFailKeyboard),
+                    ),
+                ),
+            ),
         )
     }.then(label = "guess_bird_photo_finish_step") { msg ->
         var lastDialogMsg = ""
@@ -229,7 +230,7 @@ class GuessBirdByChatMentionChainPresenter(
                     birdWithEmojiNumber(index, bird)
                 }.joinToString("")
                 lastDialogMsg = finishFailDialogMsg + fiveBirdsMsg
-            }
+            },
         )
 
         abortChain(bot, msg.chat.id, msg.from?.id, lastDialogMsg)

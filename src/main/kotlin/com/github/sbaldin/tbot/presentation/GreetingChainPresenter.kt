@@ -44,10 +44,10 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
                 keyboard = listOf(
                     listOf(
                         KeyboardButton(showHelpKeyboard),
-                        KeyboardButton(cancelHelpKeyboard)
-                    )
-                )
-            )
+                        KeyboardButton(cancelHelpKeyboard),
+                    ),
+                ),
+            ),
         )
     }.then { msg ->
 

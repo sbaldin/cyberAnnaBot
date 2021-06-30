@@ -5,20 +5,18 @@ import com.github.sbaldin.tbot.data.BirdClassModel
 import com.github.sbaldin.tbot.data.CnnConf
 import com.github.sbaldin.tbot.data.enums.BirdNameEnum
 import com.github.sbaldin.tbot.domain.image.cropping.ImageLoaderProvider
-import org.deeplearning4j.util.ModelSerializer
-import org.slf4j.LoggerFactory
-import java.io.File
-import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler
 import org.datavec.image.loader.NativeImageLoader
 import org.datavec.image.transform.ResizeImageTransform
+import org.deeplearning4j.util.ModelSerializer
+import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler
+import org.slf4j.LoggerFactory
+import java.io.File
 import java.io.InputStream
-import javax.imageio.ImageIO
 
 class BirdClassifier(conf: CnnConf) {
 
     private val model = ModelSerializer.restoreComputationGraph(loadModel(conf))
     private val loader = ImageLoaderProvider()
-
 
     private fun loadModel(conf: CnnConf): InputStream {
         return Thread.currentThread().contextClassLoader.getResourceAsStream(conf.modelFileName)!!
@@ -35,7 +33,7 @@ class BirdClassifier(conf: CnnConf) {
         val image = NativeImageLoader(
             224,
             224,
-            3
+            3,
         ).asMatrix(resized)
 
         // values need to be scaled
@@ -51,14 +49,14 @@ class BirdClassifier(conf: CnnConf) {
             BirdClassModel(
                 birdName.id,
                 birdName.title,
-                rate
+                rate,
             )
         }.sortedByDescending { it.rate }
 
         log.info("output:\n" + outputDistribution.first())
 
         return BirdClassDistributionModel(
-            outputDistribution.take(10).associateByTo(LinkedHashMap()) { it.id }
+            outputDistribution.take(10).associateByTo(LinkedHashMap()) { it.id },
         )
     }
 

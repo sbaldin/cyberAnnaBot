@@ -6,13 +6,13 @@ import java.io.File
 import javax.imageio.ImageIO
 
 class ImageCropInteractor(
-    private val imageCropper: ImageCropper
+    private val imageCropper: ImageCropper,
 ) {
-    fun crop(chatId:Long, userId: Int?, image: File, detectedObject: DetectedObjectModel): File {
+    fun crop(chatId: Long, userId: Int?, image: File, detectedObject: DetectedObjectModel): File {
         val img = ImageIO.read(image)
-       return if(detectedObject.height < img.height || detectedObject.width < img.width ){
-            imageCropper.crop(chatId,userId, detectedObject, image)
-        }else{
+        return if (detectedObject.height < img.height || detectedObject.width < img.width) {
+            imageCropper.crop(chatId, userId, detectedObject, image)
+        } else {
             image
         }
     }

@@ -2,12 +2,19 @@ package com.github.sbaldin.tbot.presentation.base
 
 import com.elbekD.bot.Bot
 import com.elbekD.bot.types.Message
-import com.github.sbaldin.tbot.data.*
-import com.github.sbaldin.tbot.domain.*
+import com.github.sbaldin.tbot.data.BirdClassDistributionModel
+import com.github.sbaldin.tbot.data.ObjectDetectionFailedModel
+import com.github.sbaldin.tbot.data.ObjectDetectionResultModel
+import com.github.sbaldin.tbot.data.ObjectDetectionSuccessfulModel
+import com.github.sbaldin.tbot.domain.BirdClassificationInteractor
+import com.github.sbaldin.tbot.domain.BirdDetectionInteractor
+import com.github.sbaldin.tbot.domain.ImageCropInteractor
+import com.github.sbaldin.tbot.domain.PhotoInteractor
+import com.github.sbaldin.tbot.domain.asDetectedObjects
 import com.github.sbaldin.tbot.presentation.log
 import com.github.sbaldin.tbot.toPhotoSizeModel
 import java.io.File
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
 abstract class BaseBirdDetectionChainPresenter(
@@ -66,7 +73,7 @@ abstract class BaseBirdDetectionChainPresenter(
         bot.sendPhoto(
             chatId = msg.chat.id,
             photo = file,
-            caption = "debug message"
+            caption = "debug message",
         )
         return file
     }

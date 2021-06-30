@@ -4,7 +4,6 @@ import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.PhotoSize
 import com.github.sbaldin.tbot.data.PhotoSizeModel
 import org.slf4j.Logger
-import java.time.LocalDate
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
@@ -30,5 +29,5 @@ fun PhotoSize.toPhotoSizeModel(): PhotoSizeModel = PhotoSizeModel(
     fileId = file_id,
     fileSize = file_size,
     width = width,
-    height = height
+    height = height,
 )

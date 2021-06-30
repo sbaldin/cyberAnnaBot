@@ -15,7 +15,7 @@ class ImageLoaderProvider {
                 NativeImageLoader(
                     reader.getWidth(0).toLong(),
                     reader.getHeight(0).toLong(),
-                    3
+                    3,
                 )
             } catch (e: Exception) {
                 throw e
@@ -24,5 +24,4 @@ class ImageLoaderProvider {
             }
         }!!
     }
-
 }
