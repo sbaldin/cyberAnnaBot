@@ -1,22 +1,22 @@
-package com.github.sbaldin.tbot.domain
+package com.github.sbaldin.tbot.domain.classification
 
 import com.github.sbaldin.tbot.data.BirdClassDistributionModel
 import com.github.sbaldin.tbot.data.BirdClassModel
 import com.github.sbaldin.tbot.data.CnnConf
-import com.github.sbaldin.tbot.data.enum.BirdNameEnum
-import org.deeplearning4j.util.ModelSerializer
-import org.slf4j.LoggerFactory
-import java.io.File
-import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler
+import com.github.sbaldin.tbot.data.enums.BirdNameEnum
+import com.github.sbaldin.tbot.domain.image.cropping.ImageLoaderProvider
 import org.datavec.image.loader.NativeImageLoader
 import org.datavec.image.transform.ResizeImageTransform
+import org.deeplearning4j.util.ModelSerializer
+import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler
+import org.slf4j.LoggerFactory
+import java.io.File
 import java.io.InputStream
-import javax.imageio.ImageIO
 
 class BirdClassifier(conf: CnnConf) {
 
     private val model = ModelSerializer.restoreComputationGraph(loadModel(conf))
-    private val cnnInputLayerSize = conf.cnnInputLayerSize
+    private val loader = ImageLoaderProvider()
 
     private fun loadModel(conf: CnnConf): InputStream {
         return Thread.currentThread().contextClassLoader.getResourceAsStream(conf.modelFileName)!!
@@ -25,7 +25,7 @@ class BirdClassifier(conf: CnnConf) {
     fun getBirdClassDistribution(localFile: File): BirdClassDistributionModel {
         log.info("Calc bird class distribution of $localFile")
         // use the nativeImageLoader to convert to numerical matrix
-        val loader = createImageLoader(localFile)
+        val loader = loader.get(localFile)
         val resizer = ResizeImageTransform(224, 224)
         val resized = resizer.transform(loader.asWritable(localFile))
 
@@ -33,7 +33,7 @@ class BirdClassifier(conf: CnnConf) {
         val image = NativeImageLoader(
             224,
             224,
-            3
+            3,
         ).asMatrix(resized)
 
         // values need to be scaled
@@ -49,34 +49,15 @@ class BirdClassifier(conf: CnnConf) {
             BirdClassModel(
                 birdName.id,
                 birdName.title,
-                rate
+                rate,
             )
         }.sortedByDescending { it.rate }
 
         log.info("output:\n" + outputDistribution.first())
 
         return BirdClassDistributionModel(
-            outputDistribution.take(10).associateByTo(LinkedHashMap()) { it.id }
+            outputDistribution.take(10).associateByTo(LinkedHashMap()) { it.id },
         )
-    }
-
-    private fun createImageLoader(localFile: File): NativeImageLoader = ImageIO.createImageInputStream(localFile).use { iis ->
-        val readers = ImageIO.getImageReaders(iis)
-        readers.takeIf { it.hasNext() }?.let {
-            val reader = it.next()
-            try {
-                reader.setInput(iis, true)
-                NativeImageLoader(
-                    reader.getWidth(0).toLong(),
-                    reader.getHeight(0).toLong(),
-                    3
-                )
-            } catch (e: Exception) {
-                throw e
-            } finally {
-                reader.dispose()
-            }
-        }!!
     }
 
     companion object {

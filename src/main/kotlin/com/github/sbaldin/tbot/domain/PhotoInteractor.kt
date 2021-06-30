@@ -1,7 +1,6 @@
 package com.github.sbaldin.tbot.domain
 
 import com.github.sbaldin.tbot.data.PhotoSizeModel
-import kotlin.jvm.Throws
 import org.apache.commons.io.FileUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -15,15 +14,20 @@ import java.nio.file.StandardCopyOption
 class PhotoInteractor(private val photoStorageDir: String) {
 
     @Throws(DownloadPhotoException::class)
-    fun savePhotoToStorage(messageId: Int, photos: List<PhotoSizeModel>, fileUrlProvider: (String) -> String): File {
-        log.info("Saving Biggest photo from list ${photos.joinToString()}")
+    fun savePhotoToStorage(uniqueId: Int, photos: List<PhotoSizeModel>, fileUrlProvider: (String) -> String): File {
         val photoFolder = Path.of(photoStorageDir)
+        val photoIndex = "$uniqueId.jpg"
 
         if (!Files.exists(photoFolder)) {
             Files.createDirectories(photoFolder)
         }
-        val photoIndex = "$messageId.jpg"
-        val localFile = Files.createFile(Path.of(photoStorageDir, photoIndex)).toFile()
+        val localPhotoFilePath = Path.of(photoStorageDir, photoIndex)
+        val localFile = if (Files.exists(localPhotoFilePath)) {
+            localPhotoFilePath.toFile()
+        } else {
+            Files.createFile(localPhotoFilePath).toFile()
+        }
+        log.info("Saving photo $photoIndex")
 
         val fileId = getBiggestPhoto(photos)
         val fileUrl = fileUrlProvider(fileId)
@@ -41,16 +45,16 @@ class PhotoInteractor(private val photoStorageDir: String) {
         biggestPhoto.fileId
     }
 
-    fun removePhotoFromStorage(messageId: Int) {
-        val photoIndex = "$messageId.jpg"
+    fun removePhotoFromStorage(uniqueId: Int) {
+        val photoIndex = "$uniqueId.jpg"
         val pathToPhoto = Path.of(photoStorageDir, photoIndex)
         if (Files.exists(pathToPhoto)) {
             Files.delete(pathToPhoto)
         }
     }
 
-    fun putPhotoToTrainingStorage(messageId: Int): Path {
-        val photoIndex = "$messageId.jpg"
+    fun putPhotoToTrainingStorage(uniqueId: Int): Path {
+        val photoIndex = "$uniqueId.jpg"
         val pathToPhoto = Path.of(photoStorageDir, photoIndex)
         val trainingPath = Path.of(photoStorageDir, TRAINING_DATA_SET_DIR)
         if (!Files.exists(trainingPath)) {

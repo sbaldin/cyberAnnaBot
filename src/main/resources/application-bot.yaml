@@ -1,6 +1,7 @@
 bot:
   name: cyber_anny_bot
   locale: RU
+  photoDestinationDir: ./training
   token: no cheese for u bro
 
 cnn:

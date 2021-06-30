@@ -1,35 +1,38 @@
 package com.github.sbaldin.tbot
 
-import com.github.sbaldin.tbot.domain.BirdClassifier
 import com.github.sbaldin.tbot.data.BotConf
 import com.github.sbaldin.tbot.data.CnnConf
+import com.github.sbaldin.tbot.domain.BirdClassificationInteractor
+import com.github.sbaldin.tbot.domain.BirdDetectionInteractor
+import com.github.sbaldin.tbot.domain.ImageCropInteractor
 import com.github.sbaldin.tbot.domain.PhotoInteractor
-import com.github.sbaldin.tbot.domain.BirdClassifierInteractor
-import com.github.sbaldin.tbot.presentation.GreetingChainPresenter
-import com.github.sbaldin.tbot.presentation.GuessBirdByCmdChainPresenter
+import com.github.sbaldin.tbot.domain.classification.BirdClassifier
+import com.github.sbaldin.tbot.domain.detection.ObjectDetector
+import com.github.sbaldin.tbot.domain.image.cropping.ImageCropper
 import com.github.sbaldin.tbot.presentation.BirdGuessingBot
+import com.github.sbaldin.tbot.presentation.GreetingChainPresenter
 import com.github.sbaldin.tbot.presentation.GuessBirdByChatMentionChainPresenter
 import com.github.sbaldin.tbot.presentation.GuessBirdByChatPhotoChainPresenter
+import com.github.sbaldin.tbot.presentation.GuessBirdByCmdChainPresenter
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import com.uchuhimo.konf.toValue
-import org.slf4j.LoggerFactory
 import org.apache.log4j.PropertyConfigurator
 import org.slf4j.Logger
-
+import org.slf4j.LoggerFactory
 import java.util.Properties
 
 val log: Logger = LoggerFactory.getLogger(Application::class.java)
 
 fun readBotConf(
     resourcePath: String = "application-bot.yaml",
-    botConfPath: String = ""
+    botConfPath: String = "",
 ) = Config()
     .from.yaml.resource(resourcePath).from.yaml.file(botConfPath, optional = true).at("bot").toValue<BotConf>()
 
 fun readCnnConf(
     resourcePath: String = "application-bot.yaml",
-    cnnConfPath: String = ""
+    cnnConfPath: String = "",
 ) = Config()
     .from.yaml.resource(resourcePath).from.yaml.file(cnnConfPath, optional = true).at("cnn").toValue<CnnConf>()
 
@@ -50,32 +53,37 @@ object Application {
         log.info("Application locale path:$locale")
 
         val classifier = BirdClassifier(cnnConf)
+        val objectDetector = ObjectDetector()
+        val imageCropper = ImageCropper()
         val photoInteractor = PhotoInteractor(appConf.photoDestinationDir)
-        val birdInteractor = BirdClassifierInteractor(classifier)
-
+        val birdInteractor = BirdClassificationInteractor(classifier)
+        val detectionInteractor = BirdDetectionInteractor(objectDetector)
+        val imageCropInteractor = ImageCropInteractor(imageCropper)
         val dialogs = listOf(
             GreetingChainPresenter(locale),
             GuessBirdByCmdChainPresenter(
                 conf = appConf,
                 photoInteractor = photoInteractor,
-                birdInteractor = birdInteractor
+                classificationInteractor = birdInteractor,
+                detectionInteractor = detectionInteractor,
+                imageCropInteractor = imageCropInteractor,
             ),
             GuessBirdByChatPhotoChainPresenter(
                 conf = appConf,
                 photoInteractor = photoInteractor,
-                birdInteractor = birdInteractor
+                birdInteractor = birdInteractor,
             ),
             GuessBirdByChatMentionChainPresenter(
                 conf = appConf,
                 photoInteractor = photoInteractor,
-                birdInteractor = birdInteractor
-            )
+                birdInteractor = birdInteractor,
+            ),
         )
 
         BirdGuessingBot(
             appConf.name,
             appConf.token,
-            dialogs
+            dialogs,
         ).start()
     }
 }

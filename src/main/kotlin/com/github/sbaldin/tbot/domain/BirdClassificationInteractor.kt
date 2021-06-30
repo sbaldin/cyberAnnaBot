@@ -2,12 +2,13 @@ package com.github.sbaldin.tbot.domain
 
 import com.github.sbaldin.tbot.data.BirdClassDistributionModel
 import com.github.sbaldin.tbot.data.BirdClassModel
+import com.github.sbaldin.tbot.domain.classification.BirdClassifier
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 
-class BirdClassifierInteractor(
-    private val birdClassifier: BirdClassifier
+class BirdClassificationInteractor(
+    private val birdClassifier: BirdClassifier,
 ) {
 
     fun calcBirdClassDistribution(savedPhoto: File) = birdClassifier.getBirdClassDistribution(savedPhoto)
@@ -21,6 +22,6 @@ class BirdClassifierInteractor(
     }
 
     companion object {
-        val log: Logger = LoggerFactory.getLogger(BirdClassifierInteractor::class.java)
+        val log: Logger = LoggerFactory.getLogger(BirdClassificationInteractor::class.java)
     }
 }

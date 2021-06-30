@@ -15,7 +15,7 @@ class GuessingStateHandler(val photoInteractor: PhotoInteractor) {
         photoInteractor.putPhotoToTrainingStorage(msg)
     }
 
-    companion object{
+    companion object {
         val log = LoggerFactory.getLogger(GuessingStateHandler::class.java)
     }
 }
