@@ -104,6 +104,7 @@ private fun threeGroupOfOverlappingRectangles() = listOf(
     ),
 )
 
+/*
 private fun badCaseWithLast2Rect() =  listOf(
     DetectedObjectModel(topLeftX = 88, topLeftY = 390, bottomRightX = 251, bottomRightY = 604, width = 163, height = 214),
     DetectedObjectModel(topLeftX = 513, topLeftY = 342, bottomRightX = 952, bottomRightY = 643, width = 439, height = 301),
@@ -111,4 +112,4 @@ private fun badCaseWithLast2Rect() =  listOf(
     DetectedObjectModel(topLeftX = 784, topLeftY = 298, bottomRightX = 1164, bottomRightY = 542, width = 380, height = 244),
     DetectedObjectModel(topLeftX = 835, topLeftY = 301, bottomRightX = 1203, bottomRightY = 511, width = 368, height = 210),
     DetectedObjectModel(topLeftX = 804, topLeftY = 297, bottomRightX = 1246, bottomRightY = 529, width = 442, height = 232),
-)
+)*/

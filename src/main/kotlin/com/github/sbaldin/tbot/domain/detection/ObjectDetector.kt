@@ -139,7 +139,7 @@ fun List<DetectedObjectModel>.mergeOverlapping(): List<DetectedObjectModel> {
     val mergeGroups = mutableListOf<MutableSet<DetectedObjectModel>>()
     val processedGroupIndex = mutableSetOf<Int>()
 
-    //Grouping
+    // Grouping
     intersectionGroups.forEach outer@{ (index, areaToMerge) ->
         if (processedGroupIndex.contains(index)) return@outer
         val areasToMerge = mutableSetOf(areaToMerge)
@@ -153,11 +153,10 @@ fun List<DetectedObjectModel>.mergeOverlapping(): List<DetectedObjectModel> {
         }
         processedGroupIndex.add(index)
         mergeGroups.add(areasToMerge)
-
     }
 
-    //Merging
-    //Do we need to make it by one loop through all elements?
+    // Merging
+    // Do we need to make it by one loop through all elements?
     return mergeGroups.map { overlappedRectangles ->
         val topLeftX = overlappedRectangles.minOf { it.topLeftX }
         val topLeftY = overlappedRectangles.minOf { it.topLeftY }
