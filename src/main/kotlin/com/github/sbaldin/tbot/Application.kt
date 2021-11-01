@@ -36,7 +36,7 @@ fun readCnnConf(
 ) = Config()
     .from.yaml.resource(resourcePath).from.yaml.file(cnnConfPath, optional = true).at("cnn").toValue<CnnConf>()
 
-object Application {
+class Application {
     private val appConfPath: String = System.getProperty("appConfig") ?: "./application-bot.yaml"
     private val appConf: BotConf = readBotConf(botConfPath = appConfPath)
     private val cnnConf: CnnConf = readCnnConf(cnnConfPath = appConfPath)
@@ -86,11 +86,15 @@ object Application {
             dialogs,
         ).start()
     }
-}
 
-fun main() {
-    Application.configureLogger()
-    log.info("Starting Telegram Cyber Anny Bot.")
-    Application.run()
-    log.info("The bot connected to telegram api.")
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val app = Application()
+            app.configureLogger()
+            log.info("Starting Telegram Cyber Anny Bot.")
+            app.run()
+            log.info("Bot connected to telegram api.")
+        }
+    }
 }

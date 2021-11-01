@@ -54,7 +54,7 @@ class GuessBirdByCmdChainPresenter(
             is ObjectDetectionSuccessfulModel -> {
                 log.info(" ${objectDetectionResult.detectedObjects.size} Birds were detected on photo!")
                 val keyboard = objectDetectionResult.detectedObjects
-                    .mapIndexed { index, _ -> KeyboardButton("объект №$index") }
+                    .mapIndexed { index, _ -> KeyboardButton("Птица №$index") }
                 bot.sendPhoto(
                     chatId = msg.chat.id,
                     photo = objectDetectionResult.labeledPhoto,
@@ -70,7 +70,7 @@ class GuessBirdByCmdChainPresenter(
                 log.info("Bird detection was failed! Reason:${objectDetectionResult.reason}.")
                 bot.sendMessage(
                     chatId = msg.chat.id,
-                    text = noDetectedObjMsg + " ",
+                    text = "$noDetectedObjMsg ",
                 )
             }
         }
@@ -192,7 +192,7 @@ class GuessBirdByChatMentionChainPresenter(
             startChainPredicates.any { msg.text?.contains(it) ?: false }
     }
 
-    override fun chain(bot: Bot): ChainBuilder = bot.chain("mention_in_chat", this::chainPredicateFn) { msg ->
+    override fun chain(bot: Bot): ChainBuilder = bot.chain("mention_in_chat", ::chainPredicateFn) { msg ->
         bot.sendMessage(msg.chat.id, guessingInProgressMsg)
         val birdDistribution = getBirdClassDistribution(bot, msg)
         val bestBird = birdInteractor.getBirdWithHighestRate(birdDistribution)

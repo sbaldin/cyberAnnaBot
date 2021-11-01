@@ -60,7 +60,8 @@ abstract class BaseBirdDetectionChainPresenter(
         val detectedObj = when (detectionResult) {
             is ObjectDetectionSuccessfulModel -> {
                 log.info("Cropping step. Selected object: ${msg.text}")
-                val selectedObj = msg.text!!.substring(8).toInt()
+                //drop sub string "Птица №"
+                val selectedObj = msg.text!!.substring(7).toInt()
                 detectionResult.detectedObjects[selectedObj]
             }
             is ObjectDetectionFailedModel -> {

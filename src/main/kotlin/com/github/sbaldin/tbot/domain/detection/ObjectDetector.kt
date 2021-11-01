@@ -20,17 +20,19 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Path
 import javax.imageio.ImageIO
+import kotlin.math.max
+import kotlin.math.min
 
 class ObjectDetector(
     private val model: ComputationGraph = TinyYOLO.builder().build().initPretrained() as ComputationGraph,
     private val loader: NativeImageLoader = NativeImageLoader(416, 416, 3),
-    private val frameScaleFactor: Double = 0.09,
+    private val frameScaleFactor: Double = 0.03,
 ) {
     private val labels = arrayOf(
         "aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow",
         "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor",
     )
-    private val detectionThreshold = 0.4
+    private val detectionThreshold = 0.35
     private val gridWidth = 13
     private val gridHeight = 13
 
@@ -40,21 +42,22 @@ class ObjectDetector(
             if (detectedObjects.any { it.predictedClass == requestedLabel.ordinal }) {
                 val requestedObjects = detectedObjects.filter { it.predictedClass == requestedLabel.ordinal }
                 val img = ImageIO.read(birdPhoto)
+                val mergedOverlappedObjects = requestedObjects.map {
+                    val (topLeftX, topLeftY, bottomRightX, bottomRightY) = scaleCoordinates(it, img)
+                    DetectedObjectModel(
+                        topLeftX,
+                        topLeftY,
+                        bottomRightX,
+                        bottomRightY,
+                        bottomRightX - topLeftX,
+                        bottomRightY - topLeftY,
+                    )
+                }.mergeOverlapping()
                 ObjectDetectionSuccessfulModel(
                     label = requestedLabel,
                     initialPhoto = birdPhoto,
-                    labeledPhoto = drawDetectedObjects(birdPhoto, requestedObjects),
-                    detectedObjects = requestedObjects.map {
-                        val (topLeftX, topLeftY, bottomRightX, bottomRightY) = scaleCoordinates(it, img)
-                        DetectedObjectModel(
-                            topLeftX,
-                            topLeftY,
-                            bottomRightX,
-                            bottomRightY,
-                            bottomRightX - topLeftX,
-                            bottomRightY - topLeftY,
-                        )
-                    },
+                    labeledPhoto = drawDetectedObjects(birdPhoto, mergedOverlappedObjects),
+                    detectedObjects = mergedOverlappedObjects,
                 )
             } else {
                 ObjectDetectionFailedModel(
@@ -74,7 +77,7 @@ class ObjectDetector(
         return outputLayer.getPredictedObjects(results, detectionThreshold)
     }
 
-    private fun drawDetectedObjects(photo: File, detectedObjects: List<DetectedObject>): File {
+    private fun drawDetectedObjects(photo: File, detectedObjects: List<DetectedObjectModel>): File {
         val img = ImageIO.read(photo)
         val g2d = img.createGraphics()
         g2d.color = Color.RED
@@ -82,8 +85,8 @@ class ObjectDetector(
         g2d.font = Font("TimesRoman", Font.PLAIN, 64)
         val textMargin = 12
         detectedObjects.forEachIndexed { index, detectedObject ->
-            val (xs1, ys1, xs2, ys2) = scaleCoordinates(detectedObject, img)
-            g2d.drawString("$index" + labels[detectedObject.predictedClass], xs1 + textMargin, ys2 - textMargin)
+            val (xs1, ys1, xs2, ys2) = detectedObject.coords()
+            g2d.drawString("$index", xs1 + textMargin, ys2 - textMargin)
             g2d.drawRect(xs1, ys1, xs2 - xs1, ys2 - ys1)
         }
         g2d.dispose()
@@ -117,4 +120,72 @@ class ObjectDetector(
     companion object {
         val log = LoggerFactory.getLogger(ObjectDetector::class.java)
     }
+}
+
+/*
+  https://math.stackexchange.com/questions/99565/simplest-way-to-calculate-the-intersect-area-of-two-rectangles
+  Algorithm organized in following steps:
+      1. We assume that no intersection therefore create groups 'GR' one by one
+      2. pick the first group and Iterates through all other groups
+      3. if there are intersection than add both object to group and mark items as processed
+      4. When iteration is finished merge all groups
+ */
+fun List<DetectedObjectModel>.mergeOverlapping(): List<DetectedObjectModel> {
+    if (this.size <= 1) return this
+
+    val groupIndexSeq = generateSequence(0) { it + 1 }.iterator()
+    val intersectionGroups = this.associateBy { groupIndexSeq.next() }
+
+    val mergeGroups = mutableListOf<MutableSet<DetectedObjectModel>>()
+    val processedGroupIndex = mutableSetOf<Int>()
+
+    //Grouping
+    intersectionGroups.forEach outer@{ (index, areaToMerge) ->
+        if (processedGroupIndex.contains(index)) return@outer
+        val areasToMerge = mutableSetOf(areaToMerge)
+
+        intersectionGroups.forEach inner@{ (anotherIndex, anotherArea) ->
+            if (processedGroupIndex.contains(anotherIndex)) return@inner
+            if (anotherArea != areaToMerge && checkOverlapping(areaToMerge, anotherArea)) {
+                areasToMerge.add(anotherArea)
+                processedGroupIndex.add(anotherIndex)
+            }
+        }
+        processedGroupIndex.add(index)
+        mergeGroups.add(areasToMerge)
+
+    }
+
+    //Merging
+    //Do we need to make it by one loop through all elements?
+    return mergeGroups.map { overlappedRectangles ->
+        val topLeftX = overlappedRectangles.minOf { it.topLeftX }
+        val topLeftY = overlappedRectangles.minOf { it.topLeftY }
+        val bottomRightX = overlappedRectangles.maxOf { it.bottomRightX }
+        val bottomRightY = overlappedRectangles.maxOf { it.bottomRightY }
+        DetectedObjectModel(
+            topLeftX,
+            topLeftY,
+            bottomRightX,
+            bottomRightY,
+            bottomRightX - topLeftX,
+            bottomRightY - topLeftY,
+        )
+    }
+}
+
+/**
+Here we are considering rectangle as an object of two-point: top left and bottom right, that are connected by lines:
+To reduce calculation we calc width and height of interception area and then calc area of it
+
+width = x12<x21 || x11>x22 ? 0 : Math.min(x12,x22) - Math.max(x11,x21),
+height = y12<y21 || y11>y22 ? 0 : Math.min(y12,y22) - Math.max(y11,y21);
+area = width * height
+ */
+fun checkOverlapping(rectToMerge: DetectedObjectModel, anotherRect: DetectedObjectModel): Boolean {
+    val width = max(0, min(rectToMerge.bottomRightX, anotherRect.bottomRightX) - max(rectToMerge.topLeftX, anotherRect.topLeftX))
+    val height = max(0, min(rectToMerge.bottomRightY, anotherRect.bottomRightY) - max(rectToMerge.topLeftY, anotherRect.topLeftY))
+    val overlapArea = width * height
+    // if interception area bigger than 70 percent of both rectangles area than group such objects.
+    return overlapArea > rectToMerge.area * 0.7 && overlapArea > anotherRect.area * 0.7
 }
