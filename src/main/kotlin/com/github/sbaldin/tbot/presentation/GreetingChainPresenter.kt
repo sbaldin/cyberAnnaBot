@@ -6,7 +6,6 @@ import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.KeyboardButton
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.ReplyKeyboardMarkup
-import com.elbekD.bot.util.isCommand
 import com.github.sbaldin.tbot.presentation.base.DialogChain
 import com.github.sbaldin.tbot.presentation.base.message.exactCommand
 import com.github.sbaldin.tbot.presentation.base.message.isSentInLast5minutes

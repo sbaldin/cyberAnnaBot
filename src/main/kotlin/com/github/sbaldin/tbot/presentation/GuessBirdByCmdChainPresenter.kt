@@ -121,8 +121,7 @@ class GuessBirdByCmdChainPresenter(
 
     override fun logger(): Logger = log
 
-    companion object{
+    companion object {
         val log: Logger = LoggerFactory.getLogger(GuessBirdByChatMentionChainPresenter::class.java)
     }
 }
-

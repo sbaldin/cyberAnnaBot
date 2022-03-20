@@ -77,6 +77,4 @@ abstract class BaseBirdDetectionChainPresenter(
         )
         return file
     }
-
-
 }
