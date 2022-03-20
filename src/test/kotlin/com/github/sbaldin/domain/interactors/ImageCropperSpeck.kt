@@ -17,7 +17,7 @@ import org.jetbrains.spek.api.dsl.on
 class ImageCropperSpeck : Spek({
     given("Image Cropper") {
         val cropper = ImageCropper()
-        val objectToCropping = DetectedObjectModel(100, 200, 200, 300, 100, 158)
+        val objectToCropping = DetectedObjectModel(100, 200, 200, 358, 100, 158)
         val imageToCropping = createImageWithCroppingArea(
             objectToCropping.topLeftX,
             objectToCropping.topLeftY,

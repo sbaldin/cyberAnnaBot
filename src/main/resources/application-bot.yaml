@@ -5,7 +5,7 @@ bot:
   token: no cheese for u bro
 
 cnn:
-  modelFileName: "model_russian_6x6_kernel_darknet_92.bin"
+  modelPath: "model_russian_6x6_kernel_darknet_92.bin"
   cnnInputLayerSize:
     width: 224
     height: 244
