@@ -10,12 +10,11 @@ import com.github.sbaldin.tbot.data.enums.BirdNameEnum
 import com.github.sbaldin.tbot.domain.BirdClassificationInteractor
 import com.github.sbaldin.tbot.domain.GuessingStateHandler
 import com.github.sbaldin.tbot.domain.PhotoInteractor
+import com.github.sbaldin.tbot.presentation.base.message.isSentInLast5minutes
 import com.github.sbaldin.tbot.toPercentage
 import com.github.sbaldin.tbot.toPhotoSizeModel
 import com.vdurmont.emoji.EmojiParser
 import java.text.MessageFormat
-import java.time.Duration
-import java.time.Instant
 import java.util.Locale
 import java.util.Objects
 import java.util.ResourceBundle
@@ -74,7 +73,10 @@ abstract class BaseGuessBirdChainPresenter(
         }
     }
 
-    protected open fun chainPredicateFn(msg: Message): Boolean = isMessageWasSendInLast5minutes(msg)
+    /**
+     * Determines whether to run the chain or not
+     */
+    protected open fun chainPredicate(msg: Message): Boolean = msg.isSentInLast5minutes()
 
     protected open fun clearState(chatId: Long, userId: Int?) {
         birdClassDistributionByChatId.remove(getUniqueId(chatId, userId))
@@ -141,14 +143,4 @@ abstract class BaseGuessBirdChainPresenter(
         clearState(chatId, userId)
         bot.terminateChain(chatId)
     }
-}
-
-private fun isMessageWasSendInLast5minutes(msg: Message): Boolean {
-    val now = Instant.now()
-    val msgDate = Instant.ofEpochMilli(msg.date * 1000L)
-
-    val diff = Duration.between(msgDate, now).toSeconds()
-    val fiveMinuteInterval = 300
-
-    return diff < fiveMinuteInterval
 }

@@ -37,7 +37,25 @@ data class DetectedObjectModel(
     val bottomRightY: Int = 0,
     val width: Int = 0,
     val height: Int = 0,
-)
+) {
+    constructor(
+        topLeftX: Int,
+        topLeftY: Int,
+        bottomRightX: Int,
+        bottomRightY: Int,
+    ) : this(
+        topLeftX,
+        topLeftY,
+        bottomRightX,
+        bottomRightY,
+        bottomRightX - topLeftX,
+        bottomRightY - topLeftY,
+    )
+
+    fun coords(): Array<Int> = arrayOf(topLeftX, topLeftY, bottomRightX, bottomRightY)
+
+    val area: Int by lazy { width * height }
+}
 
 sealed class ObjectDetectionResultModel(
     open val label: ObjectDetectionLabelEnum,

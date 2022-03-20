@@ -38,7 +38,7 @@ configurations {
 group 'com.github.sbaldin'
 version '0.7'
 
-mainClassName = "com.github.sbaldin.tbot.ApplicationKt"
+mainClassName = "com.github.sbaldin.tbot.Application"
 defaultTasks 'run'
 
 repositories {
@@ -58,7 +58,6 @@ kotlinter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-
     implementation 'com.uchuhimo:konf-core:0.20.0'
     implementation 'com.uchuhimo:konf-yaml:0.20.0'
 
@@ -204,3 +203,15 @@ afterEvaluate {
 }
 
 check.dependsOn tasks.ktlint
+
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.hasTask(buildDockerRelease)) {
+        compileJava.options.debug = false
+        project.version = "docker-release"
+    }
+}
+
+task buildDockerRelease(type: Copy, dependsOn: build) {
+    from layout.buildDirectory.file('libs/cyber_anny_bot-docker-release-all.jar'), layout.buildDirectory.file('resources/main/application-bot.yaml')
+    into "docker"
+}

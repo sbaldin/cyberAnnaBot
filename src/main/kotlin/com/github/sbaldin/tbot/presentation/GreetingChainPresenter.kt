@@ -2,12 +2,14 @@ package com.github.sbaldin.tbot.presentation
 
 import com.elbekD.bot.Bot
 import com.elbekD.bot.feature.chain.ChainBuilder
-import com.elbekD.bot.feature.chain.chain
 import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.KeyboardButton
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.ReplyKeyboardMarkup
+import com.elbekD.bot.util.isCommand
 import com.github.sbaldin.tbot.presentation.base.DialogChain
+import com.github.sbaldin.tbot.presentation.base.message.exactCommand
+import com.github.sbaldin.tbot.presentation.base.message.isSentInLast5minutes
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.Locale
@@ -34,7 +36,11 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
         }
     }
 
-    override fun chain(bot: Bot): ChainBuilder = bot.chain("/start") { msg ->
+    private fun chainPredicate(msg: Message): Boolean {
+        return msg.isSentInLast5minutes() && msg.exactCommand("/start")
+    }
+
+    override fun chain(bot: Bot): ChainBuilder = bot.safeChain("greetings", ::chainPredicate) { msg ->
         bot.sendMessage(
             msg.chat.id,
             createGreetingMsg(msg),
@@ -50,13 +56,14 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
             ),
         )
     }.then { msg ->
-
         when (msg.text) {
             showHelpKeyboard -> bot.sendMessage(msg.chat.id, longHelpStoryMsg)
             cancelHelpKeyboard -> bot.sendMessage(msg.chat.id, finishDialogKeyboard)
         }
         bot.terminateChain(msg.chat.id)
     }
+
+    override fun logger(): Logger = log
 
     private fun createGreetingMsg(msg: Message): String {
         val greetingWithName = msg.from?.let { "$greetingWordMsg, ${it.first_name}!" } ?: "$greetingWordMsg!"
