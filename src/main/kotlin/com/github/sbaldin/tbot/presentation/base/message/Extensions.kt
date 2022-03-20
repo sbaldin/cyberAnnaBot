@@ -9,8 +9,6 @@ import java.time.Instant
  * either chain should handle the incoming message or should ignore it.
  */
 
-
-
 fun Message.isSentInLast5minutes(): Boolean {
     val now = Instant.now()
     val msgDate = Instant.ofEpochMilli(date * 1000L)

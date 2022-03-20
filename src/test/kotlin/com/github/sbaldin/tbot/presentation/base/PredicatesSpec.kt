@@ -12,27 +12,28 @@ import java.util.Date
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class PredicatesSpec : Spek({
+class PredicatesSpec : Spek(
+    {
 
-    describe("#${Message::isSentInLast5minutes.name}") {
+        describe("#${Message::isSentInLast5minutes.name}") {
 
-        on("Incoming message") {
+            on("Incoming message") {
 
-            it("return false if message appears too late") {
-                val earlierThanFiveMinuteAgo = LocalDateTime.of(2022, 1,  1, 0, 0).toInstant(ZoneOffset.UTC)
-                val message = MessageProvider.message(1, earlierThanFiveMinuteAgo.epochSecond.toInt() , "test")
-               // val message = MessageProvider.message(1, (Date().time /1000L).toInt() , "test")
-                assertFalse {
-                    message.isSentInLast5minutes()
+                it("return false if message appears too late") {
+                    val earlierThanFiveMinuteAgo = LocalDateTime.of(2022, 1, 1, 0, 0).toInstant(ZoneOffset.UTC)
+                    val message = MessageProvider.message(1, earlierThanFiveMinuteAgo.epochSecond.toInt(), "test")
+                    assertFalse {
+                        message.isSentInLast5minutes()
+                    }
                 }
-            }
 
-            it("returns true if message up to date ") {
-                val message = MessageProvider.message(1, (Date().time /1000L).toInt() , "test")
-               assertTrue {
-                    message.isSentInLast5minutes()
+                it("returns true if message up to date ") {
+                    val message = MessageProvider.message(1, (Date().time / 1000L).toInt(), "test")
+                    assertTrue {
+                        message.isSentInLast5minutes()
+                    }
                 }
             }
         }
-    }
-})
+    },
+)

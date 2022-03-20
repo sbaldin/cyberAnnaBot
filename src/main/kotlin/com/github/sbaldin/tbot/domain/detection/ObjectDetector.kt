@@ -119,24 +119,24 @@ class ObjectDetector(
 }
 
 /**
-  https://math.stackexchange.com/questions/99565/simplest-way-to-calculate-the-intersect-area-of-two-rectangles
-  Algorithm organized in following steps:
-      1. We assume that no intersection therefore create groups 'GR' one by one
-      2. pick the first group and Iterates through all other groups
-      3. if there are intersection than add both object to group and mark items as processed
-      4. When iteration is finished merge all groups
+ https://math.stackexchange.com/questions/99565/simplest-way-to-calculate-the-intersect-area-of-two-rectangles
+ Algorithm organized in following steps:
+ 1. We assume that no intersection therefore create groups 'GR' one by one
+ 2. pick the first group and Iterates through all other groups
+ 3. if there are intersection than add both object to group and mark items as processed
+ 4. When iteration is finished merge all groups
 
-  Note: On the one hand it's wise to merge overlapping areas twice:
-    At the first stage we merge small areas that have direct overlapping,
-    afterwards we receive larger areas that can have overlapping with each other.
-    At the second stage we merge large areas if they have overlapping.
+ Note: On the one hand it's wise to merge overlapping areas twice:
+ At the first stage we merge small areas that have direct overlapping,
+ afterwards we receive larger areas that can have overlapping with each other.
+ At the second stage we merge large areas if they have overlapping.
 
-    However, it leads to cases when areas after 1 stage shows better results than after  1 and 2 together.
-    I have tested such approach on the same photos and results are following:
-        area after 1 stage shows ~90%
-        area after 1 and 2 stage shows ~45-50%
+ However, it leads to cases when areas after 1 stage shows better results than after  1 and 2 together.
+ I have tested such approach on the same photos and results are following:
+ area after 1 stage shows ~90%
+ area after 1 and 2 stage shows ~45-50%
 
-    Conclusion: do not do merge overlapping ares twice, better drop second overlapping areas.
+ Conclusion: do not do merge overlapping ares twice, better drop second overlapping areas.
 
  */
 fun List<DetectedObjectModel>.mergeOverlapping(): List<DetectedObjectModel> {
