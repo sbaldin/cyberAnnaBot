@@ -11,7 +11,6 @@ import com.github.sbaldin.tbot.domain.BirdDetectionInteractor
 import com.github.sbaldin.tbot.domain.ImageCropInteractor
 import com.github.sbaldin.tbot.domain.PhotoInteractor
 import com.github.sbaldin.tbot.domain.asDetectedObjects
-import com.github.sbaldin.tbot.presentation.log
 import com.github.sbaldin.tbot.toPhotoSizeModel
 import java.io.File
 import java.util.Locale
@@ -21,7 +20,7 @@ abstract class BaseBirdDetectionChainPresenter(
     locale: Locale,
     private val token: String,
     private val photoInteractor: PhotoInteractor,
-    private val classificationInteractor: BirdClassificationInteractor,
+    classificationInteractor: BirdClassificationInteractor,
     private val detectionInteractor: BirdDetectionInteractor,
     private val imageCropInteractor: ImageCropInteractor,
 ) : BaseGuessBirdChainPresenter(locale, token, photoInteractor, classificationInteractor) {
@@ -59,7 +58,7 @@ abstract class BaseBirdDetectionChainPresenter(
         val detectionResult = getDetectionResult(msg.chat.id, msg.from?.id)
         val detectedObj = when (detectionResult) {
             is ObjectDetectionSuccessfulModel -> {
-                log.info("Cropping step. Selected object: ${msg.text}")
+                logger().info("Cropping step. Selected object: ${msg.text}")
                 // drop sub string "Птица №"
                 val selectedObj = msg.text!!.substring(7).toInt()
                 detectionResult.detectedObjects[selectedObj]
@@ -70,7 +69,7 @@ abstract class BaseBirdDetectionChainPresenter(
         }
 
         val file = imageCropInteractor.crop(msg.chat.id, msg.from?.id, detectionResult.initialPhoto, detectedObj)
-        log.info("Cropping was finished.")
+        logger().info("Cropping was finished.")
         bot.sendPhoto(
             chatId = msg.chat.id,
             photo = file,
@@ -78,4 +77,6 @@ abstract class BaseBirdDetectionChainPresenter(
         )
         return file
     }
+
+
 }

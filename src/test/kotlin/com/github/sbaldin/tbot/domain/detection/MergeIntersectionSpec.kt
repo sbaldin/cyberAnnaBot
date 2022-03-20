@@ -7,7 +7,7 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
 import kotlin.test.assertEquals
 
-class MergeIntersectionSpeck : Spek(
+class MergeIntersectionSpec : Spek(
     {
         given("Merge Overlapping Object works Correctly") {
             on("Merge overlapping object called") {
