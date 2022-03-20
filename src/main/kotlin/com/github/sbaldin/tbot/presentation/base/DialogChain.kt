@@ -41,7 +41,6 @@ interface DialogChain {
      * @return [ChainBuilder]
      */
     fun Bot.safeChain(label: String, predicate: (Message) -> Boolean, action: (Message) -> Unit): ChainBuilder {
-
         val runActionCatching: (Message) -> Unit = { msg: Message ->
             runCatching { action(msg) }.onFailure { logger().error("Error during chain action processing", it) }
         }
