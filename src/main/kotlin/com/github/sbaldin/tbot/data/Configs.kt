@@ -12,6 +12,6 @@ data class BotConf(
 }
 
 data class CnnConf(
-    val modelFileName: String,
+    val modelPath: String,
     val cnnInputLayerSize: CnnInputLayerSizeModel,
 )

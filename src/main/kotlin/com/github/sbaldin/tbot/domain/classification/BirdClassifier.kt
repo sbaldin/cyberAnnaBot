@@ -11,6 +11,7 @@ import org.deeplearning4j.util.ModelSerializer
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.io.FileInputStream
 import java.io.InputStream
 
 class BirdClassifier(conf: CnnConf) {
@@ -19,7 +20,12 @@ class BirdClassifier(conf: CnnConf) {
     private val loader = ImageLoaderProvider()
 
     private fun loadModel(conf: CnnConf): InputStream {
-        return Thread.currentThread().contextClassLoader.getResourceAsStream(conf.modelFileName)!!
+        log.info("Trying to load model from path:\n${conf.modelPath}")
+        return try {
+            FileInputStream(File(conf.modelPath))
+        } catch (e: Exception) {
+            Thread.currentThread().contextClassLoader.getResourceAsStream(conf.modelPath)!!
+        }
     }
 
     fun getBirdClassDistribution(localFile: File): BirdClassDistributionModel {
