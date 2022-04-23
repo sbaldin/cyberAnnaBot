@@ -83,9 +83,9 @@ dependencies {
 
     implementation 'com.vdurmont:emoji-java:5.1.1'
 
-    implementation "org.deeplearning4j:deeplearning4j-core:1.0.0-beta7"
-    implementation "org.deeplearning4j:deeplearning4j-zoo:1.0.0-beta7"
-    implementation "org.nd4j:nd4j-native-platform:1.0.0-beta7"
+    implementation "org.deeplearning4j:deeplearning4j-core:1.0.0-M2"
+    implementation "org.deeplearning4j:deeplearning4j-zoo:1.0.0-M2"
+    implementation "org.nd4j:nd4j-native-platform:1.0.0-M2"
 
     testImplementation "io.mockk:mockk:${mockkversion}"
     // Use the Kotlin test library.
