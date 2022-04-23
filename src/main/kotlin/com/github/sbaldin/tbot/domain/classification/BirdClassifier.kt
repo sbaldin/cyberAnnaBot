@@ -24,6 +24,7 @@ class BirdClassifier(conf: CnnConf) {
         return try {
             FileInputStream(File(conf.modelPath))
         } catch (e: Exception) {
+            log.error("Error has occurred during model loading!", e)
             Thread.currentThread().contextClassLoader.getResourceAsStream(conf.modelPath)!!
         }
     }
