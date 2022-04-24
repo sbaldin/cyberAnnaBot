@@ -24,7 +24,7 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
     private val longHelpStoryMsg: String
 
     init {
-        ResourceBundle.getBundle("bot_dialogs", locale).apply {
+        ResourceBundle.getBundle(getInitialChainLabel(), locale).apply {
             greetingWordMsg = getStringWithEmoji("greeting_dialog_hi_message")
             greetingAboutBotMsg = getStringWithEmoji("greeting_dialog_about_message")
             longHelpStoryMsg = getStringWithEmoji("greeting_dialog_help_msg")
@@ -35,7 +35,7 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
         }
     }
 
-    private fun chainPredicate(msg: Message): Boolean {
+    override fun chainPredicate(msg: Message): Boolean {
         return msg.isSentInLast5minutes() && msg.exactCommand("/start")
     }
 
@@ -63,6 +63,7 @@ class GreetingChainPresenter(locale: Locale) : DialogChain {
     }
 
     override fun logger(): Logger = log
+    override fun getInitialChainLabel(): String = "bot_dialogs"
 
     private fun createGreetingMsg(msg: Message): String {
         val greetingWithName = msg.from?.let { "$greetingWordMsg, ${it.first_name}!" } ?: "$greetingWordMsg!"

@@ -10,9 +10,9 @@ import com.github.sbaldin.tbot.domain.PhotoInteractor
 import com.github.sbaldin.tbot.hasPhoto
 import com.github.sbaldin.tbot.presentation.base.BaseGuessBirdChainPresenter
 import com.github.sbaldin.tbot.toPercentage
-import java.text.MessageFormat
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.text.MessageFormat
 
 class GuessBirdByChatPhotoChainPresenter(
     conf: BotConf,
@@ -47,7 +47,7 @@ class GuessBirdByChatPhotoChainPresenter(
                     ),
                 ),
             )
-        }.then(label = "guess_bird_photo_finish_step") { msg ->
+        }.safeThen(label = "guess_bird_photo_finish_step", bot = bot) { msg ->
             var lastDialogMsg = ""
             handleGuessingResults(
                 msg = msg,
@@ -66,6 +66,8 @@ class GuessBirdByChatPhotoChainPresenter(
         }
 
     override fun logger(): Logger = log
+
+    override fun getInitialChainLabel(): String = "new_photo_in_chat_start"
 
     companion object {
         val log: Logger = LoggerFactory.getLogger(GuessBirdByChatMentionChainPresenter::class.java)

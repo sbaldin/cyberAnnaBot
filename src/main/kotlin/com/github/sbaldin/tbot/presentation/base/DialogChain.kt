@@ -4,7 +4,9 @@ import com.elbekD.bot.Bot
 import com.elbekD.bot.feature.chain.Chain
 import com.elbekD.bot.feature.chain.ChainBuilder
 import com.elbekD.bot.feature.chain.chain
+import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.Message
+import com.github.sbaldin.tbot.presentation.base.message.isSentInLast5minutes
 import com.vdurmont.emoji.EmojiParser
 import org.slf4j.Logger
 import java.util.ResourceBundle
@@ -14,6 +16,16 @@ interface DialogChain {
     fun chain(bot: Bot): ChainBuilder
 
     fun logger(): Logger
+
+    /**
+     * Return label that was used in [DialogChain.safeChain] method as first step label
+     */
+    fun getInitialChainLabel(): String
+
+    /**
+     * Determines whether to run the chain or not
+     */
+    fun chainPredicate(msg: Message): Boolean = msg.isSentInLast5minutes()
 
     /**
      * Helper method for creating a [Chain] that is triggered by text message.

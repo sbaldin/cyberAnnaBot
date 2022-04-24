@@ -55,7 +55,7 @@ class GuessBirdByChatMentionChainPresenter(
                 ),
             ),
         )
-    }.then(label = "guess_bird_photo_finish_step") { msg ->
+    }.safeThen(label = "guess_bird_photo_finish_step", bot = bot) { msg ->
         var lastDialogMsg = ""
         handleGuessingResults(
             msg = msg,
@@ -74,6 +74,8 @@ class GuessBirdByChatMentionChainPresenter(
     }
 
     override fun logger(): Logger = log
+
+    override fun getInitialChainLabel(): String = "mention_in_chat"
 
     companion object {
         val log: Logger = LoggerFactory.getLogger(GuessBirdByChatMentionChainPresenter::class.java)

@@ -2,6 +2,7 @@ package com.github.sbaldin.tbot.presentation
 
 import com.elbekD.bot.Bot
 import com.elbekD.bot.feature.chain.ChainBuilder
+import com.elbekD.bot.feature.chain.jumpToAndFire
 import com.elbekD.bot.types.KeyboardButton
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.ReplyKeyboardMarkup
@@ -37,12 +38,12 @@ class GuessBirdByCmdChainPresenter(
         return super.chainPredicate(msg) && startChainPredicates.any { msg.text?.contains(it) ?: false }
     }
 
-    override fun chain(bot: Bot): ChainBuilder = bot.safeChain("guess_bird_start", this::chainPredicate) { msg ->
+    override fun chain(bot: Bot): ChainBuilder = bot.safeChain(getInitialChainLabel(), this::chainPredicate) { msg ->
         bot.sendMessage(msg.chat.id, startDialogMsg)
-    }.then(label = "object_detection_step") { msg ->
+    }.safeThen(label = "object_detection_step", bot = bot) { msg ->
         if (msg.new_chat_photo == null && msg.photo == null) {
             abortChain(bot, msg.chat.id, msg.from?.id, abortDialogMsg)
-            return@then
+            return@safeThen
         }
         bot.sendMessage(msg.chat.id, guessingInProgressMsg)
         when (val objectDetectionResult = detectBirds(bot, msg)) {
@@ -67,10 +68,11 @@ class GuessBirdByCmdChainPresenter(
                     chatId = msg.chat.id,
                     text = "$noDetectedObjMsg ",
                 )
+                // jump to next step
+                bot.jumpToAndFire("guess_bird_photo_crop_photo_step", msg)
             }
         }
-    }.then(label = "guess_bird_photo_crop_photo_step") { msg ->
-        bot.sendMessage(msg.chat.id, guessingInProgressMsg)
+    }.safeThen(label = "guess_bird_photo_crop_photo_step", bot = bot) { msg ->
         val croppedImage = cropDetectedObject(msg, bot)
         val birdDistribution = getBirdClassDistribution(croppedImage)
         val bestBird = birdInteractor.getBirdWithHighestRate(birdDistribution)
@@ -99,7 +101,7 @@ class GuessBirdByCmdChainPresenter(
                 ),
             ),
         )
-    }.then(label = "guess_bird_photo_finish_step") { msg ->
+    }.safeThen(label = "guess_bird_photo_finish_step", bot = bot) { msg ->
         log.info("Finishing step. With message: ${msg.text}")
 
         var lastDialogMsg = ""
@@ -120,6 +122,8 @@ class GuessBirdByCmdChainPresenter(
     }
 
     override fun logger(): Logger = log
+
+    override fun getInitialChainLabel(): String = "guess_bird_start"
 
     companion object {
         val log: Logger = LoggerFactory.getLogger(GuessBirdByChatMentionChainPresenter::class.java)
