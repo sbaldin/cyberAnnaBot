@@ -64,17 +64,22 @@ abstract class BaseBirdDetectionChainPresenter(
                 detectionResult.detectedObjects[selectedObj]
             }
             is ObjectDetectionFailedModel -> {
+                logger().info("Cropping step has been skipped, due to failed object detection step. Initial image will be used.")
                 detectionResult.initialPhoto.asDetectedObjects()
             }
         }
 
         val file = imageCropInteractor.crop(msg.chat.id, msg.from?.id, detectionResult.initialPhoto, detectedObj)
         logger().info("Cropping was finished.")
-        bot.sendPhoto(
-            chatId = msg.chat.id,
-            photo = file,
-            caption = "debug message",
-        )
+        /*
+          Here  we output cropped images to be sure that detection and cropping steps were correct
+          Uncomment in cose you need to test cropping
+          bot.sendPhoto(
+                    chatId = msg.chat.id,
+                    photo = file,
+                    caption = "debug message",
+                )
+        */
         return file
     }
 }
