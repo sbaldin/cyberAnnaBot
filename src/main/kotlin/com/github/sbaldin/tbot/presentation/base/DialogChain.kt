@@ -4,7 +4,6 @@ import com.elbekD.bot.Bot
 import com.elbekD.bot.feature.chain.Chain
 import com.elbekD.bot.feature.chain.ChainBuilder
 import com.elbekD.bot.feature.chain.chain
-import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.Message
 import com.github.sbaldin.tbot.presentation.base.message.isSentInLast5minutes
 import com.vdurmont.emoji.EmojiParser
