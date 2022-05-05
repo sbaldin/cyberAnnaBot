@@ -15,11 +15,12 @@ import com.github.sbaldin.tbot.domain.ImageCropInteractor
 import com.github.sbaldin.tbot.domain.PhotoInteractor
 import com.github.sbaldin.tbot.presentation.base.BaseBirdDetectionChainPresenter
 import com.github.sbaldin.tbot.toPercentage
+import com.google.inject.Inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.text.MessageFormat
 
-class GuessBirdByCmdChainPresenter(
+class GuessBirdByCmdChainPresenter @Inject constructor(
     conf: BotConf,
     photoInteractor: PhotoInteractor,
     classificationInteractor: BirdClassificationInteractor,

@@ -1,6 +1,8 @@
 package com.github.sbaldin.tbot.domain
 
+import com.github.sbaldin.tbot.PhotoDestinationDirectory
 import com.github.sbaldin.tbot.data.PhotoSizeModel
+import com.google.inject.Inject
 import org.apache.commons.io.FileUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -11,7 +13,11 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 
-class PhotoInteractor(private val photoStorageDir: String) {
+class PhotoInteractor @Inject
+constructor(
+    @PhotoDestinationDirectory
+    private val photoStorageDir: String,
+) {
 
     @Throws(DownloadPhotoException::class)
     fun savePhotoToStorage(uniqueId: Int, photos: List<PhotoSizeModel>, fileUrlProvider: (String) -> String): File {

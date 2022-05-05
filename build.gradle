@@ -12,6 +12,7 @@ buildscript {
         mockkversion = '1.9'
         junitVersion = '1.0.2'
         tbotVersion = '5.0.1.1'
+        guiceVersion = '5.1.0'
     }
 
     repositories {
@@ -64,6 +65,9 @@ dependencies {
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
     implementation "org.slf4j:slf4j-log4j12:${slf4jVersion}"
     implementation group: 'log4j', name: 'log4j', version: '1.2.17'
+
+    // https://mvnrepository.com/artifact/com.google.inject/guice
+    implementation "com.google.inject:guice:${guiceVersion}"
 
     // https://mvnrepository.com/artifact/org.telegram/telegrambots
     implementation "org.telegram:telegrambots:$tbotVersion"

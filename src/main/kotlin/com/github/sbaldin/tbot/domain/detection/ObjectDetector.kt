@@ -6,6 +6,7 @@ import com.github.sbaldin.tbot.data.ObjectDetectionResultModel
 import com.github.sbaldin.tbot.data.ObjectDetectionSuccessfulModel
 import com.github.sbaldin.tbot.data.enums.ObjectDetectionLabelEnum
 import com.github.sbaldin.tbot.measure
+import com.google.inject.Inject
 import org.datavec.image.loader.NativeImageLoader
 import org.deeplearning4j.nn.graph.ComputationGraph
 import org.deeplearning4j.nn.layers.objdetect.DetectedObject
@@ -23,7 +24,7 @@ import javax.imageio.ImageIO
 import kotlin.math.max
 import kotlin.math.min
 
-class ObjectDetector(
+class ObjectDetector @Inject constructor(
     private val model: ComputationGraph = TinyYOLO.builder().build().initPretrained() as ComputationGraph,
     private val loader: NativeImageLoader = NativeImageLoader(416, 416, 3),
     private val frameScaleFactor: Double = 0.03,
