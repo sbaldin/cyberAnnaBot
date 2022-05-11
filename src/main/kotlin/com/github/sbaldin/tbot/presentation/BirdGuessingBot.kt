@@ -3,6 +3,8 @@ package com.github.sbaldin.tbot.presentation
 import com.elbekD.bot.Bot
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.PhotoSize
+import com.github.sbaldin.tbot.BotName
+import com.github.sbaldin.tbot.BotToken
 import com.github.sbaldin.tbot.presentation.base.DialogChain
 import com.google.inject.Inject
 import org.slf4j.Logger
@@ -10,7 +12,9 @@ import org.slf4j.LoggerFactory
 import java.util.Date
 
 class BirdGuessingBot @Inject constructor(
+    @BotName
     private val botName: String,
+    @BotToken
     private val token: String,
     private val dialogs: Set<DialogChain>,
 ) {

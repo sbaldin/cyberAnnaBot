@@ -74,7 +74,7 @@ class GuessBirdByCmdChainPresenter @Inject constructor(
             }
         }
     }.safeThen(label = "guess_bird_photo_crop_photo_step", bot = bot) { msg ->
-        val croppedImage = cropDetectedObject(msg, bot)
+        val croppedImage = cropDetectedObject(msg)
         val birdDistribution = getBirdClassDistribution(croppedImage)
         val bestBird = birdInteractor.getBirdWithHighestRate(birdDistribution)
         val id = getUniqueId(msg.chat.id, msg.from?.id)

@@ -2,6 +2,7 @@ package com.github.sbaldin.tbot
 
 import com.github.sbaldin.tbot.data.BotConf
 import com.github.sbaldin.tbot.data.CnnConf
+import com.github.sbaldin.tbot.domain.detection.ObjectDetector
 import com.github.sbaldin.tbot.presentation.BirdGuessingBot
 import com.github.sbaldin.tbot.presentation.GreetingChainPresenter
 import com.github.sbaldin.tbot.presentation.GuessBirdByChatMentionChainPresenter
@@ -19,6 +20,7 @@ import com.uchuhimo.konf.toValue
 import org.apache.log4j.PropertyConfigurator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.Locale
 import java.util.Properties
 
 val log: Logger = LoggerFactory.getLogger(Application::class.java)
@@ -63,7 +65,7 @@ class ApplicationModule : AbstractModule() {
 
     @Provides
     @BotLocale
-    fun botLocale(conf: BotConf) = conf.locale
+    fun botLocale(conf: BotConf): Locale = Locale(conf.locale)
 
     @Provides
     @BotName
