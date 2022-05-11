@@ -2,7 +2,6 @@ package com.github.sbaldin.tbot
 
 import com.github.sbaldin.tbot.data.BotConf
 import com.github.sbaldin.tbot.data.CnnConf
-import com.github.sbaldin.tbot.domain.detection.ObjectDetector
 import com.github.sbaldin.tbot.presentation.BirdGuessingBot
 import com.github.sbaldin.tbot.presentation.GreetingChainPresenter
 import com.github.sbaldin.tbot.presentation.GuessBirdByChatMentionChainPresenter

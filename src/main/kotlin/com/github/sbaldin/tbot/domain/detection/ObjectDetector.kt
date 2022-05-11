@@ -33,9 +33,9 @@ class ObjectDetector constructor(
 
     @Inject
     constructor() : this(
-      model =   TinyYOLO.builder().build().initPretrained() as ComputationGraph,
-      loader =   NativeImageLoader(416, 416, 3),
-      frameScaleFactor =   0.03,
+        model = TinyYOLO.builder().build().initPretrained() as ComputationGraph,
+        loader = NativeImageLoader(416, 416, 3),
+        frameScaleFactor = 0.03,
     )
 
     private val detectionThreshold = 0.35
