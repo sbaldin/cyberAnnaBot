@@ -15,11 +15,12 @@ import com.github.sbaldin.tbot.domain.ImageCropInteractor
 import com.github.sbaldin.tbot.domain.PhotoInteractor
 import com.github.sbaldin.tbot.presentation.base.BaseBirdDetectionChainPresenter
 import com.github.sbaldin.tbot.toPercentage
+import com.google.inject.Inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.text.MessageFormat
 
-class GuessBirdByCmdChainPresenter(
+class GuessBirdByCmdChainPresenter @Inject constructor(
     conf: BotConf,
     photoInteractor: PhotoInteractor,
     classificationInteractor: BirdClassificationInteractor,
@@ -73,7 +74,7 @@ class GuessBirdByCmdChainPresenter(
             }
         }
     }.safeThen(label = "guess_bird_photo_crop_photo_step", bot = bot) { msg ->
-        val croppedImage = cropDetectedObject(msg, bot)
+        val croppedImage = cropDetectedObject(msg)
         val birdDistribution = getBirdClassDistribution(croppedImage)
         val bestBird = birdInteractor.getBirdWithHighestRate(birdDistribution)
         val id = getUniqueId(msg.chat.id, msg.from?.id)

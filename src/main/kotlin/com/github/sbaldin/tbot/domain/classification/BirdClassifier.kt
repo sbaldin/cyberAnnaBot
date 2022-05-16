@@ -5,6 +5,7 @@ import com.github.sbaldin.tbot.data.BirdClassModel
 import com.github.sbaldin.tbot.data.CnnConf
 import com.github.sbaldin.tbot.data.enums.BirdNameEnum
 import com.github.sbaldin.tbot.domain.image.cropping.ImageLoaderProvider
+import com.google.inject.Inject
 import org.datavec.image.loader.NativeImageLoader
 import org.datavec.image.transform.ResizeImageTransform
 import org.deeplearning4j.util.ModelSerializer
@@ -14,7 +15,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 
-class BirdClassifier(conf: CnnConf) {
+class BirdClassifier @Inject constructor(conf: CnnConf) {
 
     private val model = ModelSerializer.restoreComputationGraph(loadModel(conf))
     private val loader = ImageLoaderProvider()

@@ -6,12 +6,14 @@ import com.github.sbaldin.tbot.data.ObjectDetectionResultModel
 import com.github.sbaldin.tbot.data.ObjectDetectionSuccessfulModel
 import com.github.sbaldin.tbot.data.enums.ObjectDetectionLabelEnum
 import com.github.sbaldin.tbot.measure
+import com.google.inject.Inject
 import org.datavec.image.loader.NativeImageLoader
 import org.deeplearning4j.nn.graph.ComputationGraph
 import org.deeplearning4j.nn.layers.objdetect.DetectedObject
 import org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer
 import org.deeplearning4j.zoo.model.TinyYOLO
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.BasicStroke
 import java.awt.Color
@@ -23,11 +25,19 @@ import javax.imageio.ImageIO
 import kotlin.math.max
 import kotlin.math.min
 
-class ObjectDetector(
-    private val model: ComputationGraph = TinyYOLO.builder().build().initPretrained() as ComputationGraph,
-    private val loader: NativeImageLoader = NativeImageLoader(416, 416, 3),
-    private val frameScaleFactor: Double = 0.03,
+class ObjectDetector constructor(
+    private val model: ComputationGraph,
+    private val loader: NativeImageLoader,
+    private val frameScaleFactor: Double,
 ) {
+
+    @Inject
+    constructor() : this(
+        model = TinyYOLO.builder().build().initPretrained() as ComputationGraph,
+        loader = NativeImageLoader(416, 416, 3),
+        frameScaleFactor = 0.03,
+    )
+
     private val detectionThreshold = 0.35
     private val gridWidth = 13
     private val gridHeight = 13
@@ -114,7 +124,7 @@ class ObjectDetector(
         y / gridHeight * img.height.toDouble()
 
     companion object {
-        val log = LoggerFactory.getLogger(ObjectDetector::class.java)
+        val log: Logger = LoggerFactory.getLogger(ObjectDetector::class.java)
     }
 }
 
@@ -136,7 +146,7 @@ class ObjectDetector(
  area after 1 stage shows ~90%
  area after 1 and 2 stage shows ~45-50%
 
- Conclusion: do not do merge overlapping ares twice, better drop second overlapping areas.
+ Conclusion: do not merge overlapping ares twice, better drop second overlapping areas.
 
  */
 fun List<DetectedObjectModel>.mergeOverlapping(): List<DetectedObjectModel> {

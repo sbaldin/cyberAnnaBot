@@ -6,15 +6,20 @@ import com.elbekD.bot.feature.chain.terminateChain
 import com.elbekD.bot.types.KeyboardButton
 import com.elbekD.bot.types.Message
 import com.elbekD.bot.types.ReplyKeyboardMarkup
+import com.github.sbaldin.tbot.BotLocale
 import com.github.sbaldin.tbot.presentation.base.DialogChain
 import com.github.sbaldin.tbot.presentation.base.message.exactCommand
 import com.github.sbaldin.tbot.presentation.base.message.isSentInLast5minutes
+import com.google.inject.Inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.Locale
 import java.util.ResourceBundle
 
-class GreetingChainPresenter(locale: Locale) : DialogChain {
+class GreetingChainPresenter @Inject constructor(
+    @BotLocale
+    locale: Locale
+) : DialogChain {
 
     private val showHelpKeyboard: String
     private val cancelHelpKeyboard: String

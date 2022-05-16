@@ -2,6 +2,7 @@ package com.github.sbaldin.tbot.domain.image.cropping
 
 import com.github.sbaldin.tbot.data.DetectedObjectModel
 import com.github.sbaldin.tbot.measure
+import com.google.inject.Inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
@@ -9,7 +10,7 @@ import java.io.File
 import java.util.Objects
 import javax.imageio.ImageIO
 
-class ImageCropper {
+class ImageCropper @Inject constructor() {
 
     fun crop(chatId: Long, userId: Int?, cropBorder: DetectedObjectModel, imageFile: File): File {
         return log.measure("Cropping photo operation... Chat: $chatId UserId:$userId.") {

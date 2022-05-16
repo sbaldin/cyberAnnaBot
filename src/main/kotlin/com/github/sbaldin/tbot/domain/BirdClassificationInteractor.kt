@@ -3,11 +3,12 @@ package com.github.sbaldin.tbot.domain
 import com.github.sbaldin.tbot.data.BirdClassDistributionModel
 import com.github.sbaldin.tbot.data.BirdClassModel
 import com.github.sbaldin.tbot.domain.classification.BirdClassifier
+import com.google.inject.Inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 
-class BirdClassificationInteractor(
+class BirdClassificationInteractor @Inject constructor(
     private val birdClassifier: BirdClassifier,
 ) {
 

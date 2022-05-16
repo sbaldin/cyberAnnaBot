@@ -53,7 +53,7 @@ abstract class BaseBirdDetectionChainPresenter(
 
     fun cropDetectedObject(
         msg: Message,
-        bot: Bot,
+        /*bot: Bot,*/
     ): File {
         val detectionResult = getDetectionResult(msg.chat.id, msg.from?.id)
         val detectedObj = when (detectionResult) {
